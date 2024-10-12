@@ -1,4 +1,4 @@
-# Try Class Implementation
+# Try-Typescript
 
 ## Overview
 
