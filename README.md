@@ -42,3 +42,22 @@ const failureResult = new Try<number>(() => {
 
 console.log(failureResult.get()); // Output: 0
 ```
+## Available functions
+
+- [ ] `get()`
+- [ ] `getOrElse(T other)`
+- [ ] `getOrElseGet(Function<? super Throwable, ? extends T> other)`
+- [ ] `getOrElseThrow(Function<? super Throwable, ? extends X> exceptionProvider)`
+- [ ] `isSuccess()`
+- [ ] `isFailure()`
+- [ ] `map(Function<? super T, ? extends U> mapper)`
+- [ ] `flatMap(Function<? super T, ? extends Try<? extends U>> mapper)`
+- [ ] `recover(Function<? super Throwable, ? extends T> f)`
+- [ ] `recoverWith(Function<? super Throwable, ? extends Try<? extends T>> f)`
+- [ ] `andThen(Consumer<? super T> action)`
+- [ ] `filter(Predicate<? super T> predicate)`
+- [ ] `onFailure(Consumer<? super Throwable> action)`
+- [ ] `onSuccess(Consumer<? super T> action)`
+- [ ] `toOption()`
+- [ ] `toEither()`
+- [ ] `failed()`
