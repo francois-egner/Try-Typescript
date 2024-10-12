@@ -17,7 +17,7 @@ This repository contains an implementation of the `Try` class, inspired by the V
 
 - **Custom Exception Handling**: Provides mechanisms to specify custom behavior for both success and failure cases, enabling tailored error handling strategies.
 
-## Usage
+## Usage (Will be updated as soon as more functionality is implemented)
 
 To use the `Try` class, instantiate it with a computation that may fail, and utilize the available methods to handle the result. Below is an example of how to use the `Try` class in TypeScript:
 
