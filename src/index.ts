@@ -1,4 +1,3 @@
-import {Try} from "./Try";
+import {Try} from "./lib";
 
-
-export {Try}
+export {Try};

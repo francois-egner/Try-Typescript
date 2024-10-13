@@ -1,4 +1,4 @@
-import { Try } from "../lib";
+import { Try } from "../"
 
 describe("Try", () => {
     test("Try.success should create a Success instance", () => {
