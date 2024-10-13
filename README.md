@@ -44,20 +44,20 @@ console.log(failureResult.get()); // Output: 0
 ```
 ## Available functions
 
-- [x] `get()`
-- [x] `getOrElse(T other)`
-- [x] `getOrElseGet(Function<? super Throwable, ? extends T> other)`
-- [x] `getOrElseThrow(Function<? super Throwable, ? extends X> exceptionProvider)`
-- [x] `isSuccess()`
-- [x] `isFailure()`
-- [x] `map(Function<? super T, ? extends U> mapper)`
-- [x] `flatMap(Function<? super T, ? extends Try<? extends U>> mapper)`
-- [ ] `recover(Function<? super Throwable, ? extends T> f)`
-- [ ] `recoverWith(Function<? super Throwable, ? extends Try<? extends T>> f)`
-- [ ] `andThen(Consumer<? super T> action)`
-- [ ] `filter(Predicate<? super T> predicate)`
-- [ ] `onFailure(Consumer<? super Throwable> action)`
-- [ ] `onSuccess(Consumer<? super T> action)`
-- [ ] `toOption()`
-- [ ] `toEither()`
-- [ ] `failed()`
+- [x] `get`
+- [x] `getOrElse`
+- [x] `getOrElseGet`
+- [x] `getOrElseThrow`
+- [x] `isSuccess`
+- [x] `isFailure`
+- [x] `map`
+- [x] `flatMap`
+- [x] `recover`
+- [x] `recoverWith`
+- [x] `andThen`
+- [x] `filter`
+- [x] `onFailure`
+- [x] `onSuccess`
+- [x] `getCause`
+- [x] `filterNot`
+- [x] `peek`

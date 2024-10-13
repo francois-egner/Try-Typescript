@@ -80,18 +80,21 @@ export  abstract  class Try<T> {
        }
     }
 
-    public filter(predicate: (v: T) => boolean): Try<T> {
-        if(this.isFailure()) return this;
-        try{
+    public filter(predicate: (v: T) => boolean, fallbackFunction?: () => Error): Try<T> {
+        if (this.isFailure()) return this;
+        try {
             const value = (this as unknown as Success<T>).get();
-            return predicate(value) ? this : Try.failure(new NoSuchElementException("Predicate does not hold for " + value));
-        }catch (e: any){
+            if (predicate(value)) return this;
+            return Try.failure(fallbackFunction ? fallbackFunction() : new NoSuchElementException("Predicate does not hold for " + value));
+
+        } catch (e: any) {
             return Try.failure(e);
         }
     }
-    public filterNot(predicate: (v: T) => boolean): Try<T> {
-        return this.filter(v => !predicate(v));
+    public filterNot(predicate: (v: T) => boolean, fallbackFunction?: () => Error): Try<T> {
+        return this.filter(v => !predicate(v), fallbackFunction);
     }
+
 
     public peek(f: (v: T) => void): Try<T> {
         if(this.isSuccess()) f(this.get());
@@ -110,6 +113,16 @@ export  abstract  class Try<T> {
         if (this.isSuccess()) return this as unknown as Try<T>;
         const recoverFunction = recoverMapping[this.getCause().constructor.name];
         return recoverFunction ? Try.of(()=> {return recoverFunction(this.getCause())}) as unknown as Try<U> : this as unknown as Try<T>;
+    }
+
+
+    public onSuccess(f: (v: T) => void): Try<T> {
+        if(this.isSuccess()) f(this.get());
+        return this;
+    }
+    public onFailure(f: (ex: Error) => void): Try<T> {
+        if(this.isFailure()) f(this.getCause());
+        return this;
     }
 
 
