@@ -22,10 +22,6 @@ This repository contains an implementation of the `Try` class, inspired by the V
 To use the `Try` class, instantiate it with a computation that may fail, and utilize the available methods to handle the result. Below is an example of how to use the `Try` class in TypeScript:
 
 ```typescript
-class Try<T> {
-    // Implementation of the Try class...
-}
-
 // Example of using the Try class
 const result = new Try<number>(() => {
     return 10 / 2; // Successful computation
