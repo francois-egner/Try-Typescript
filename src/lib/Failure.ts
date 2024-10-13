@@ -1,7 +1,6 @@
-import {Try} from "./Try";
+import { Try } from "./Try";
 
 export class Failure<T> extends Try<T> {
-
     private readonly err: Error;
 
     constructor(err: Error) {
@@ -9,34 +8,34 @@ export class Failure<T> extends Try<T> {
         this.err = err;
     }
 
-
-
-
-    public get() : T {
+    public get(): T {
         throw this.err;
     }
 
-    public getCause() : Error {
+    public getCause(): Error {
         return this.err;
     }
 
-    public isEmpty() : boolean {
+    public isEmpty(): boolean {
         return false;
     }
 
-    public isFailure() : boolean {
+    public isFailure(): boolean {
         return true;
     }
 
-    public isSuccess() : boolean {
+    public isSuccess(): boolean {
         return false;
     }
 
-    public stringPrefix() : string {
-        return "Success";
+    public stringPrefix(): string {
+        return "Failure";
     }
 
-    public toString() : string {
+    public toString(): string {
         return this.stringPrefix() + "(" + this.err + ")";
     }
 }
+
+// Register the factory
+Try.failureFactory = <T>(err: Error) => new Failure(err);
