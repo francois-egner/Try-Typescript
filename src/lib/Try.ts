@@ -18,11 +18,14 @@ const TryFunctions = {
 type ExecutionElement = {name: string, functionData: {func: Function, fallbackFunction?: Function}, returning: boolean};
 
 export class Try {
-    private constructor() {}
-
     private value: any;
     private executionStack: ExecutionElement[] = [];
     private errorStack?: Error;
+
+    private constructor(initExecution?: ExecutionElement) {
+        if(initExecution)
+            this.executionStack.push(initExecution);
+    }
 
 
     //Static methods to create a Try object
@@ -35,7 +38,7 @@ export class Try {
     }
 
     static of(fn: () => any): Try {
-        return new Try().addExecution({
+        return new Try({
             name: TryFunctions.OF,
             functionData: {func: fn},
             returning: true}
@@ -54,10 +57,6 @@ export class Try {
         return this;
     }
 
-    private addExecution(fn: any): Try{
-        this.executionStack.push(fn);
-        return this;
-    }
 
     private async runElement(executionElement: ExecutionElement, isFirst: boolean = false){
         try {

@@ -18,6 +18,54 @@ describe("Try", () => {
         });
     });
 
+    describe("Try.get", () => {
+        test("get should return the value inside Success", async () => {
+            const result = Try.success(2);
+            expect(await result.get()).toBe(2);
+        });
+
+        test("get should throw the error inside Failure", async () => {
+            const result = Try.failure(new Error("test error"));
+            await expect(result.get()).rejects.toThrow("test error");
+        });
+    });
+
+    describe("Try.getOrElse", () => {
+        test("getOrElse should return the value inside Success", async () => {
+            const result = Try.success(2);
+            expect(await result.getOrElse(4)).toBe(2);
+        });
+
+        test("getOrElse should return the default value inside Failure", async () => {
+            const result = Try.failure(new Error("test error"));
+            expect(await result.getOrElse(4)).toBe(4);
+        });
+    });
+
+    describe("Try.getOrElseGet", () => {
+        test("getOrElseGet should return the value inside Success", async () => {
+            const result = Try.success(2);
+            expect(await result.getOrElseGet(() => 4)).toBe(2);
+        });
+
+        test("getOrElseGet should return the default value inside Failure", async () => {
+            const result = Try.failure(new Error("test error"));
+            expect(await result.getOrElseGet(() => 4)).toBe(4);
+        });
+    });
+
+    describe("Try.getOrElseThrow", () => {
+        test("getOrElseThrow should return the value inside Success", async () => {
+            const result = Try.success(2);
+            expect(await result.getOrElseThrow(() => new Error("test error"))).toBe(2);
+        });
+
+        test("getOrElseThrow should throw the custom error inside Failure", async () => {
+            const result = Try.failure(new Error("test error"));
+            await expect(result.getOrElseThrow(() => new Error("custom error"))).rejects.toThrow("custom error");
+        });
+    });
+
     describe("Try.of", () => {
         test("Try.of should create a Success instance when no exception is thrown", async () => {
             const result = Try.of(() => "test");
@@ -114,7 +162,7 @@ describe("Try", () => {
         });
 
         test("should convert to failure if peek function throws", async () => {
-            const result = Try.success(2).map(value => value * 2).peek(v => {throw new Error("Thrown in peek function")}).map(v => v * 2);
+            const result = Try.success(2).map(value => value * 2).peek(_ => {throw new Error("Thrown in peek function")}).map(v => v * 2);
             await expect(result.get()).rejects.toThrow("Thrown in peek function");
             expect(result.isFailure()).toBe(true);
         });
@@ -122,13 +170,13 @@ describe("Try", () => {
 
     describe("Try.recover", () => {
         test("recover should transform the value inside Failure", async () => {
-            const result = Try.failure(new Error("test error")).recover(e => "Recovered");
+            const result = Try.failure(new Error("test error")).recover(_ => "Recovered");
             await expect(result.get()).resolves.toBe("Recovered");
             expect(result.isSuccess()).toBe(true);
         });
 
         test("recover should not transform the value inside Success", async () => {
-            const result = Try.success(2).recover(e => "Recovered");
+            const result = Try.success(2).recover(_ => "Recovered");
             await expect(result.get()).resolves.toBe(2);
             expect(result.isSuccess()).toBe(true);
         });
@@ -136,13 +184,13 @@ describe("Try", () => {
 
     describe("Try.recoverWith", () => {
         test("recoverWith should transform the value inside Failure", async () => {
-            const result = Try.failure(new Error("test error")).recoverWith(e => Try.failure(new Error("Failure")).recover(e =>"Recovered from inside"));
+            const result = Try.failure(new Error("test error")).recoverWith(_ => Try.failure(new Error("Failure")).recover(_ =>"Recovered from inside"));
             await expect(result.get()).resolves.toBe("Recovered from inside");
             expect(result.isSuccess()).toBe(true);
         });
 
         test("recoverWith should not transform the value inside Success", async () => {
-            const result = Try.success(2).recoverWith(e => Try.success("Recovered"));
+            const result = Try.success(2).recoverWith(_ => Try.success("Recovered"));
             await expect(result.get()).resolves.toBe(2);
             expect(result.isSuccess()).toBe(true);
         });
