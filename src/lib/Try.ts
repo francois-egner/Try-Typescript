@@ -1,4 +1,5 @@
 const TryFunctions = {
+    OF: "OF",
     MAP: 'MAP',
     ANDTHEN: 'ANDTHEN'
 };
@@ -23,8 +24,9 @@ export class Try {
     }
 
     static of(fn: () => any): Try {
-        return new Try().addExecution({func: fn, returning: true});
+        return new Try().addExecution({name: TryFunctions.OF, func: fn, returning: true});
     }
+
 
     //Private methods to modify the internal state
     private setValue(value: any): Try {
@@ -67,17 +69,17 @@ export class Try {
             switch(executionElement.name){
                 case TryFunctions.MAP: {
                     if(this.isSuccess())
-                        await this.runElement(executionElement, i === 0);
+                        await this.runElement(executionElement, executionElement.name === TryFunctions.OF);
                     break;
                 }
                 case TryFunctions.ANDTHEN: {
                     if(this.isSuccess())
-                        await this.runElement(executionElement, i === 0);
+                        await this.runElement(executionElement, executionElement.name === TryFunctions.OF);
                     break;
                 }
                 default: {
                     //This will typically run one of the static methods
-                    await this.runElement(executionElement, i === 0);
+                    await this.runElement(executionElement, executionElement.name === TryFunctions.OF);
                 }
             }
         }
@@ -87,6 +89,11 @@ export class Try {
 
 
     //----- Public interface -----
+
+    public async run(): Promise<Try> {
+        await this.runExecutionStack()
+        return this;
+    }
 
     public async get(): Promise<any> {
         await this.runExecutionStack()
