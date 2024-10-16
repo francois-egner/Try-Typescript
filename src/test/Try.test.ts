@@ -89,6 +89,7 @@ describe("Try", () => {
         });
 
         test("map should not transform the value inside Failure", async () => {
+            // @ts-ignore
             const result = Try.failure(new Error("test error")).map(v => v * 2);
             await expect(result.get()).rejects.toThrow("test error");
             expect(result.isFailure()).toBe(true);
@@ -104,6 +105,7 @@ describe("Try", () => {
         });
 
         test("flatMap should not transform the value inside Failure", async () => {
+            // @ts-ignore
             const result = Try.failure(new Error("test error")).flatMap(v => Try.success(v * 2));
             await expect(() => result.get()).rejects.toThrow("test error");
             expect(result.isFailure()).toBe(true);

@@ -238,7 +238,7 @@ export class Try<T> {
         return this;
     }
 
-    public recover(fn: (error: Error) => T): Try<T> {
+    public recover<U>(fn: (error: Error) => U): Try<T | U> {
         this.executionStack.push({
             name: TryFunctions.RECOVER,
             functionData: {func: fn},
