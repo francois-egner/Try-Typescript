@@ -17,7 +17,7 @@ const TryFunctions = {
 
 type ExecutionElement = {name: string, functionData: {func: Function, fallbackFunction?: Function}, returning: boolean};
 
-export class Try {
+export class Try<T> {
     private value: any;
     private executionStack: ExecutionElement[] = [];
     private errorStack?: Error;
@@ -29,16 +29,16 @@ export class Try {
 
 
     //Static methods to create a Try object
-    static success(value: any): Try {
+    static success<T>(value: T): Try<T> {
         return new Try().setValue(value);
     }
 
-    static failure(error: Error): Try {
-        return new Try().setError(error);
+    static failure<T>(error: Error): Try<T> {
+        return new Try<T>().setError(error);
     }
 
-    static of(fn: () => any): Try {
-        return new Try({
+    static of<T>(fn: () => T): Try<T> {
+        return new Try<T>({
             name: TryFunctions.OF,
             functionData: {func: fn},
             returning: true}
@@ -47,18 +47,18 @@ export class Try {
 
 
     //Private methods to modify the internal state
-    private setValue(value: any): Try {
+    private setValue<T>(value: T): Try<T> {
         this.value = value;
-        return this;
+        return this as unknown as Try<T>;
     }
 
-    private setError(err: Error): Try {
+    private setError(err: Error): Try<T> {
         this.errorStack = err;
         return this;
     }
 
 
-    private async runElement(executionElement: ExecutionElement, isFirst: boolean = false){
+    private async runElement(executionElement: ExecutionElement, isFirst: boolean = false): Promise<void>{
         try {
             if(isFirst && executionElement.returning){
                 this.value = await executionElement.functionData.func();
@@ -71,13 +71,12 @@ export class Try {
             }
             await executionElement.functionData.func(this.value);
         } catch (e) {
-            // @ts-ignore
-            this.errorStack = e;
+            this.errorStack = e as Error;
         }
     }
 
 
-    private async runExecutionStack(){
+    private async runExecutionStack(): Promise<void>{
         for (let i = 0; i < this.executionStack.length; i++) {
             const executionElement = this.executionStack[i];
             try{
@@ -89,7 +88,7 @@ export class Try {
                     }
                     case TryFunctions.FLATMAP: {
                         if(this.isSuccess()){
-                            const tryObject: Try = await executionElement.functionData.func(this.value);
+                            const tryObject: Try<any> = await executionElement.functionData.func(this.value);
                             this.value = await tryObject.get();
                         }
 
@@ -132,7 +131,7 @@ export class Try {
                     case TryFunctions.RECOVERWITH: {
                         if(this.isFailure()){
                             this.errorStack = undefined;
-                            const tryObject: Try = await executionElement.functionData.func(this.errorStack!);
+                            const tryObject: Try<any> = await executionElement.functionData.func(this.errorStack!);
                             this.value = await tryObject.get();
                         }
                         break;
@@ -155,28 +154,28 @@ export class Try {
 
     //----- Public interface -----
 
-    public async run(): Promise<Try> {
+    public async run(): Promise<Try<T>> {
         await this.runExecutionStack()
         return this;
     }
 
-    public async get(): Promise<any> {
+    public async get(): Promise<T> {
         await this.runExecutionStack()
         if (this.isFailure())
             throw this.errorStack;
 
         return this.value;
     }
-    public async getOrElse<U>(defaultValue: U): Promise<U | any> {
+    public async getOrElse<U>(defaultValue: U): Promise<U | T> {
         await this.runExecutionStack()
         return this.isFailure() ? defaultValue : this.value;
     }
-    public async getOrElseGet<U>(fn: (ex: Error) => U): Promise<U> {
+    public async getOrElseGet<U>(fn: (ex: Error) => U): Promise<T | U> {
         await this.runExecutionStack()
         return this.isFailure() ? await fn(this.errorStack!) : this.value;
 
     }
-    public async getOrElseThrow<U>(fn: (error: Error) => U): Promise<any> {
+    public async getOrElseThrow<U>(fn: (error: Error) => U): Promise<T | U> {
         await this.runExecutionStack()
         if (this.isFailure())
             throw fn(this.errorStack!);
@@ -186,25 +185,25 @@ export class Try {
 
 
 
-    public map(fn: (value: any) => any): Try {
+    public map<U>(fn: (value: T) => U): Try<U> {
         this.executionStack.push({
             name: TryFunctions.MAP,
             functionData: {func: fn},
             returning: true
         });
-        return this;
+        return this as unknown as Try<U>;
     }
-    public flatMap(fn: (value: any) => Try) : Try {
+    public flatMap<U>(fn: (value: T) => Try<U>) : Try<U> {
         this.executionStack.push({
             name: TryFunctions.FLATMAP,
             functionData: {func: fn},
             returning: true
         });
-        return this
+        return this as unknown as Try<U>;
     }
 
 
-    public filter(predicateFunc: (value: any) => boolean, throwbackFunction?: (value: any) => void): Try {
+    public filter(predicateFunc: (value: T) => boolean, throwbackFunction?: (value: T) => void): Try<T> {
         this.executionStack.push({
             name: TryFunctions.FILTER,
             functionData: {func: predicateFunc, fallbackFunction: throwbackFunction ?? ((value: any) => {throw new NoSuchElementException(`Predicate does not hold for ${value}`)}) },
@@ -212,16 +211,16 @@ export class Try {
         });
         return this;
     }
-    public filterNot(predicateFunc: (value: any) => boolean, throwbackFunction?: (value: any) => void): Try {
+    public filterNot(predicateFunc: (value: T) => boolean, throwbackFunction?: (value: T) => void): Try<T> {
         this.executionStack.push({
             name: TryFunctions.FILTERNOT,
-            functionData: {func: predicateFunc, fallbackFunction: throwbackFunction ?? ((value: any) => {throw new NoSuchElementException(`Predicate does not hold for ${value}`)}) },
+            functionData: {func: predicateFunc, fallbackFunction: throwbackFunction ?? ((value: T) => {throw new NoSuchElementException(`Predicate does not hold for ${value}`)}) },
             returning: false
         });
         return this;
     }
 
-    public peek(fn: (value: any) => void): Try {
+    public peek(fn: (value: T) => void): Try<T> {
         this.executionStack.push({
             name: TryFunctions.PEEK,
             functionData: {func: fn},
@@ -230,7 +229,7 @@ export class Try {
         return this;
     }
 
-    public andThen(fn: (value: any) => any): Try {
+    public andThen(fn: (value: T) => any): Try<T> {
         this.executionStack.push({
             name: TryFunctions.ANDTHEN,
             functionData: {func: fn},
@@ -239,7 +238,7 @@ export class Try {
         return this;
     }
 
-    public recover(fn: (error: Error) => any): Try {
+    public recover(fn: (error: Error) => T): Try<T> {
         this.executionStack.push({
             name: TryFunctions.RECOVER,
             functionData: {func: fn},
@@ -247,13 +246,13 @@ export class Try {
         });
         return this;
     }
-    public recoverWith(fn: (error: Error) => Try): Try {
+    public recoverWith<U>(fn: (error: Error) => Try<U>): Try<U | T> {
         this.executionStack.push({
             name: TryFunctions.RECOVERWITH,
             functionData: {func: fn},
             returning: true
         });
-        return this;
+        return this as unknown as Try<U | T>;
     }
 
     public isSuccess(): boolean {
@@ -263,7 +262,7 @@ export class Try {
         return this.errorStack !== undefined;
     }
 
-    public onSuccess(fn: (value: any) => void): Try {
+    public onSuccess(fn: (value: T) => void): Try<T> {
         this.executionStack.push({
             name: TryFunctions.ONSUCCESS,
             functionData: {func: fn},
@@ -271,7 +270,7 @@ export class Try {
         });
         return this;
     }
-    public onFailure(fn: (value: any) => void): Try {
+    public onFailure(fn: (value: T) => void): Try<T> {
         this.executionStack.push({
             name: TryFunctions.ONFAILURE,
             functionData: {func: fn},
