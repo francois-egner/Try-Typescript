@@ -9,8 +9,10 @@ const TryFunctions = {
     FILTERNOT: 'FILTERNOT',
     PEEK: 'PEEK',
     RECOVER: 'RECOVER',
+    RECOVERWITH: 'RECOVERWITH',
     ONSUCCESS: 'ONSUCCESS',
-    ONFAILURE: 'ONFAILURE'
+    ONFAILURE: 'ONFAILURE',
+
 };
 
 type ExecutionElement = {name: string, functionData: {func: Function, fallbackFunction?: Function}, returning: boolean};
@@ -121,6 +123,21 @@ export class Try {
 
                         break;
                     }
+                    case TryFunctions.RECOVER: {
+                        if(this.isFailure()){
+                            this.errorStack = undefined;
+                            this.value = await executionElement.functionData.func(this.errorStack!);
+                        }
+                        break;
+                    }
+                    case TryFunctions.RECOVERWITH: {
+                        if(this.isFailure()){
+                            this.errorStack = undefined;
+                            const tryObject: Try = await executionElement.functionData.func(this.errorStack!);
+                            this.value = await tryObject.get();
+                        }
+                        break;
+                    }
                     default: {
                         //This will typically run one of the static methods
                         await this.runElement(executionElement, executionElement.name === TryFunctions.OF);
@@ -223,11 +240,45 @@ export class Try {
         return this;
     }
 
+    public recover(fn: (error: Error) => any): Try {
+        this.executionStack.push({
+            name: TryFunctions.RECOVER,
+            functionData: {func: fn},
+            returning: true
+        });
+        return this;
+    }
+    public recoverWith(fn: (error: Error) => Try): Try {
+        this.executionStack.push({
+            name: TryFunctions.RECOVERWITH,
+            functionData: {func: fn},
+            returning: true
+        });
+        return this;
+    }
+
     public isSuccess(): boolean {
         return this.errorStack === undefined;
     }
     public isFailure(): boolean {
         return this.errorStack !== undefined;
+    }
+
+    public onSuccess(fn: (value: any) => void): Try {
+        this.executionStack.push({
+            name: TryFunctions.ONSUCCESS,
+            functionData: {func: fn},
+            returning: false
+        });
+        return this;
+    }
+    public onFailure(fn: (value: any) => void): Try {
+        this.executionStack.push({
+            name: TryFunctions.ONFAILURE,
+            functionData: {func: fn},
+            returning: false
+        });
+        return this;
     }
 
     public getCause(): Error | undefined {

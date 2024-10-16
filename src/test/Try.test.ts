@@ -119,4 +119,32 @@ describe("Try", () => {
             expect(result.isFailure()).toBe(true);
         });
     });
+
+    describe("Try.recover", () => {
+        test("recover should transform the value inside Failure", async () => {
+            const result = Try.failure(new Error("test error")).recover(e => "Recovered");
+            await expect(result.get()).resolves.toBe("Recovered");
+            expect(result.isSuccess()).toBe(true);
+        });
+
+        test("recover should not transform the value inside Success", async () => {
+            const result = Try.success(2).recover(e => "Recovered");
+            await expect(result.get()).resolves.toBe(2);
+            expect(result.isSuccess()).toBe(true);
+        });
+    });
+
+    describe("Try.recoverWith", () => {
+        test("recoverWith should transform the value inside Failure", async () => {
+            const result = Try.failure(new Error("test error")).recoverWith(e => Try.failure(new Error("Failure")).recover(e =>"Recovered from inside"));
+            await expect(result.get()).resolves.toBe("Recovered from inside");
+            expect(result.isSuccess()).toBe(true);
+        });
+
+        test("recoverWith should not transform the value inside Success", async () => {
+            const result = Try.success(2).recoverWith(e => Try.success("Recovered"));
+            await expect(result.get()).resolves.toBe(2);
+            expect(result.isSuccess()).toBe(true);
+        });
+    });
 });
