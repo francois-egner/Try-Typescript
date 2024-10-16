@@ -32,7 +32,7 @@ describe("Try", () => {
         });
     });
 
-   describe("Try.map", () => {
+    describe("Try.map", () => {
         test("map should transform the value inside Success", async () => {
             const result = Try.success(2)
                 .map(v => v * 2);
@@ -62,18 +62,61 @@ describe("Try", () => {
         });
     });
 
-    /*
     describe("Try.filter", () => {
         test("filter should return Failure if predicate does not hold", async () => {
-            const result = await Try.success(2).filter(v => v > 2);
+            const result = Try.success(2).filter(v => v > 2);
+            await expect(result.get()).rejects.toThrow("Predicate does not hold for 2");
             expect(result.isFailure()).toBe(true);
-            expect(() => result.get()).toThrow("Predicate does not hold for 2");
+        });
+
+        test("filter should throw custom exception if predicate does not hold", async () => {
+            const result = Try.success(2).filter(v => v > 2, v => { throw new Error("Custom Predicate does not hold for " + v) });
+            await expect(result.get()).rejects.toThrow("Custom Predicate does not hold for 2");
+            expect(result.isFailure()).toBe(true);
         });
 
         test("filter should return Success if predicate holds", async () => {
-            const result = await Try.success(2).filter(v => v <= 2);
+            const result = Try.success(2).filter(v => v <= 2);
+            await expect(result.get()).resolves.toBe(2);
             expect(result.isSuccess()).toBe(true);
-            expect(result.get()).toBe(2);
+
         });
-    });*/
+    });
+
+    describe("Try.filterNot", () => {
+        test("filterNot should return Failure if predicate does not hold", async () => {
+            const result = Try.success(2).filterNot(v => v <= 2);
+            await expect(result.get()).rejects.toThrow("Predicate does not hold for 2");
+            expect(result.isFailure()).toBe(true);
+        });
+
+        test("filterNot should throw custom exception if predicate does not hold", async () => {
+            const result = Try.success(2).filterNot(v => v <= 2, v => { throw new Error("Custom Predicate does not hold for " + v) });
+            await expect(result.get()).rejects.toThrow("Custom Predicate does not hold for 2");
+            expect(result.isFailure()).toBe(true);
+        });
+
+        test("filterNot should return Success if predicate holds", async () => {
+            const result = Try.success(2).filterNot(v => v > 2);
+            await expect(result.get()).resolves.toBe(2);
+            expect(result.isSuccess()).toBe(true);
+
+        });
+    });
+
+    describe("Try.peek", () => {
+        test("should print out the current value in the chain", async () => {
+            let tempResult = 0;
+            const result = Try.success(2).map(value => value * 2).peek(v => {tempResult = v}).map(v => v * 2);
+            await expect(result.get()).resolves.toBe(8);
+            expect(tempResult).toBe(4);
+            expect(result.isSuccess()).toBe(true);
+        });
+
+        test("should convert to failure if peek function throws", async () => {
+            const result = Try.success(2).map(value => value * 2).peek(v => {throw new Error("Thrown in peek function")}).map(v => v * 2);
+            await expect(result.get()).rejects.toThrow("Thrown in peek function");
+            expect(result.isFailure()).toBe(true);
+        });
+    });
 });
