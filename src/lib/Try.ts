@@ -1,7 +1,8 @@
 const TryFunctions = {
     OF: "OF",
     MAP: 'MAP',
-    ANDTHEN: 'ANDTHEN'
+    ANDTHEN: 'ANDTHEN',
+    FLATMAP: 'FLATMAP'
 };
 
 type ExecutionElement = {name: string, func: Function, returning: boolean};
@@ -65,23 +66,37 @@ export class Try {
     private async runExecutionStack(){
         for (let i = 0; i < this.executionStack.length; i++) {
             const executionElement = this.executionStack[i];
+            try{
+                switch(executionElement.name){
+                    case TryFunctions.MAP: {
+                        if(this.isSuccess())
+                            await this.runElement(executionElement, executionElement.name === TryFunctions.OF);
+                        break;
+                    }
+                    case TryFunctions.FLATMAP: {
+                        if(this.isSuccess()){
+                            const tryObject: Try = await executionElement.func(this.value);
+                            this.value = await tryObject.get();
+                        }
 
-            switch(executionElement.name){
-                case TryFunctions.MAP: {
-                    if(this.isSuccess())
+                        break;
+                    }
+                    case TryFunctions.ANDTHEN: {
+                        if(this.isSuccess())
+                            await this.runElement(executionElement, executionElement.name === TryFunctions.OF);
+                        break;
+                    }
+
+                    default: {
+                        //This will typically run one of the static methods
                         await this.runElement(executionElement, executionElement.name === TryFunctions.OF);
-                    break;
+                    }
                 }
-                case TryFunctions.ANDTHEN: {
-                    if(this.isSuccess())
-                        await this.runElement(executionElement, executionElement.name === TryFunctions.OF);
-                    break;
-                }
-                default: {
-                    //This will typically run one of the static methods
-                    await this.runElement(executionElement, executionElement.name === TryFunctions.OF);
-                }
+            }catch(ex){
+                // @ts-ignore
+                this.executionStack = ex;
             }
+
         }
     }
 
@@ -124,7 +139,11 @@ export class Try {
     public map(fn: (value: any) => any): Try {
         this.executionStack.push({name: TryFunctions.MAP, func: fn, returning: true});
         return this;
+    }
 
+    public flatMap(fn: (value: any) => Try) : Try {
+        this.executionStack.push({name: TryFunctions.FLATMAP, func: fn, returning: true});
+        return this
     }
 
 

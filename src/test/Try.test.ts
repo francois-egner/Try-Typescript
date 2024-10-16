@@ -48,21 +48,21 @@ describe("Try", () => {
         });
     });
 
-   /* describe("Try.flatMap", () => {
+    describe("Try.flatMap", () => {
         test("flatMap should transform the value inside Success", async () => {
-            const result = await Try.success(2).flatMap(v => Try.success(v * 2));
+            const result = Try.success(2).flatMap(v => Try.success(v * 2));
+            await expect(result.get()).resolves.toBe(4);
             expect(result.isSuccess()).toBe(true);
-            expect(result.get()).toBe(4);
         });
 
         test("flatMap should not transform the value inside Failure", async () => {
-            const error = new Error("test error");
-            const result = await Try.failure<number>(error).flatMap(v => Try.success(v * 2));
+            const result = Try.failure(new Error("test error")).flatMap(v => Try.success(v * 2));
+            await expect(() => result.get()).rejects.toThrow("test error");
             expect(result.isFailure()).toBe(true);
-            expect(() => result.get()).toThrow("test error");
         });
     });
 
+    /*
     describe("Try.filter", () => {
         test("filter should return Failure if predicate does not hold", async () => {
             const result = await Try.success(2).filter(v => v > 2);
