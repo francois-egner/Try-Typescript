@@ -1,129 +1,144 @@
-import type { Success } from "./Success";
-import type { Failure } from "./Failure";
-import {NoSuchElementException} from "../exceptions/NoSuchElementException";
+const TryFunctions = {
+    MAP: 'MAP',
+    ANDTHEN: 'ANDTHEN'
+};
+
+type ExecutionElement = {name: string, func: Function, returning: boolean};
+
+export class Try {
+    private constructor() {}
+
+    private value: any;
+    private executionStack: ExecutionElement[] = [];
+    private errorStack?: Error;
 
 
-
-export  abstract  class Try<T> {
-
-    protected constructor() {}
-
-    static successFactory: <T>(value: T) => Try<T>;
-    static failureFactory: <T>(ex: Error) => Try<T>;
-
-    static success<T>(value: T): Try<T> {
-        return Try.successFactory(value);
-    }
-    static failure<T>(ex: Error): Try<T> {
-       return Try.failureFactory(ex);
-    }
-
-    public map<U>(f: (v: T) => U): Try<U> {
-        if(this.isFailure())
-            return this as unknown as Try<U>;
-        try{
-            const value = (this as unknown as Success<T>).get();
-            return Try.success(f(value));
-        }catch (e: any){
-            return Try.failure(e);
-        }
-    }
-    public flatMap<U>(f: (v: T) => Try<U>): Try<U> {
-        if(this.isFailure())
-            return this as unknown as Try<U>;
-        try{
-            const value = (this as unknown as Success<T>).get();
-            return f(value);
-        }catch (e: any){
-            return Try.failure(e);
-        }
+    //Static methods to create a Try object
+    static success(value: any): Try {
+        return new Try().setValue(value);
     }
 
+    static failure(error: Error): Try {
+        return new Try().setError(error);
+    }
 
-    public static of<U>(f: () => U): Try<U> {
+    static of(fn: () => any): Try {
+        return new Try().addExecution({func: fn, returning: true});
+    }
+
+    //Private methods to modify the internal state
+    private setValue(value: any): Try {
+        this.value = value;
+        return this;
+    }
+
+    private setError(err: Error): Try {
+        this.errorStack = err;
+        return this;
+    }
+
+    private addExecution(fn: any): Try{
+        this.executionStack.push(fn);
+        return this;
+    }
+
+    private async runElement(executionElement: ExecutionElement, isFirst: boolean = false){
         try {
-            return Try.success(f());
-        } catch (e: any) {
-            return Try.failure(e);
+            if(isFirst && executionElement.returning){
+                this.value = await executionElement.func();
+                return;
+            }
+
+            if(executionElement.returning){
+                this.value = await executionElement.func(this.value);
+                return;
+            }
+            await executionElement.func(this.value);
+        } catch (e) {
+            // @ts-ignore
+            this.errorStack = e;
+        }
+    }
+
+    private async runExecutionStack(){
+        for (let i = 0; i < this.executionStack.length; i++) {
+            const executionElement = this.executionStack[i];
+
+            switch(executionElement.name){
+                case TryFunctions.MAP: {
+                    if(this.isSuccess())
+                        await this.runElement(executionElement, i === 0);
+                    break;
+                }
+                case TryFunctions.ANDTHEN: {
+                    if(this.isSuccess())
+                        await this.runElement(executionElement, i === 0);
+                    break;
+                }
+                default: {
+                    //This will typically run one of the static methods
+                    await this.runElement(executionElement, i === 0);
+                }
+            }
         }
     }
 
 
 
-    public abstract getCause(): Error;
 
+    //----- Public interface -----
 
-    public abstract isSuccess(): boolean;
-    public abstract isFailure(): boolean;
+    public async get(): Promise<any> {
+        await this.runExecutionStack()
+        if (this.isFailure())
+            throw this.errorStack;
 
-
-
-    public abstract get(): T;
-    public getOrElse<U>(fallbackValue: U): T | U {
-        return this.isSuccess() ? this.get() : fallbackValue;
+        return this.value;
     }
-    public getOrElseGet<U>(fallbackFunction: (ex: Error) => U): T | U {
-        return this.isSuccess() ? this.get() : fallbackFunction(this.getCause());
+    public async getOrElse<U>(defaultValue: U): Promise<U | any> {
+        await this.runExecutionStack()
+        return this.isFailure() ? defaultValue : this.value;
     }
-    public getOrElseThrow<Error>(fallbackFunction: () => Error): T {
-        if (this.isSuccess()) return this.get();
-        throw Error
-    }
+    public async getOrElseGet<U>(fn: (ex: Error) => U): Promise<U> {
+        await this.runExecutionStack()
+        return this.isFailure() ? await fn(this.errorStack!) : this.value;
 
-    public andThen(f: (v: T) => void): Try<T> {
-       if(this.isFailure()) return this;
-       try{
-            f(this.get());
-            return this;
-       }catch(ex){
-           return Try.failure(ex as Error);
-       }
     }
+    public async getOrElseThrow<U>(fn: (error: Error) => U): Promise<any> {
+        await this.runExecutionStack()
+        if (this.isFailure())
+            throw fn(this.errorStack!);
 
-    public filter(predicate: (v: T) => boolean, fallbackFunction?: () => Error): Try<T> {
-        if (this.isFailure()) return this;
-        try {
-            const value = (this as unknown as Success<T>).get();
-            if (predicate(value)) return this;
-            return Try.failure(fallbackFunction ? fallbackFunction() : new NoSuchElementException("Predicate does not hold for " + value));
-
-        } catch (e: any) {
-            return Try.failure(e);
-        }
-    }
-    public filterNot(predicate: (v: T) => boolean, fallbackFunction?: () => Error): Try<T> {
-        return this.filter(v => !predicate(v), fallbackFunction);
+        return this.value;
     }
 
 
-    public peek(f: (v: T) => void): Try<T> {
-        if(this.isSuccess()) f(this.get());
+
+    public map(fn: (value: any) => any): Try {
+        this.executionStack.push({name: TryFunctions.MAP, func: fn, returning: true});
+        return this;
+
+    }
+
+
+
+    public andThen(fn: (value: any) => any): Try {
+        this.executionStack.push({name: TryFunctions.ANDTHEN, func: fn, returning: false});
         return this;
     }
 
-
-    public recover<U>(recoverMapping: { [key: string]: U }): Try< U | T> {
-        if (this.isSuccess()) return this;
-        const recoverValue = recoverMapping[this.getCause().constructor.name];
-        return recoverValue ? Try.success(recoverValue) : this;
-    }
-    public recoverWith<U>(recoverMapping: { [key: string]: (ex: Error) => U }): Try<T>;
-    public recoverWith<U>(recoverMapping: { [key: string]: (ex: Error) => U }): Try<U>;
-    public recoverWith<U>(recoverMapping: { [key: string]: (ex: Error) => U }): Try<U | T> {
-        if (this.isSuccess()) return this as unknown as Try<T>;
-        const recoverFunction = recoverMapping[this.getCause().constructor.name];
-        return recoverFunction ? Try.of(()=> {return recoverFunction(this.getCause())}) as unknown as Try<U> : this as unknown as Try<T>;
+    public isSuccess(): boolean {
+        return this.errorStack === undefined;
     }
 
+    public isFailure(): boolean {
+        return this.errorStack !== undefined;
+    }
 
-    public onSuccess(f: (v: T) => void): Try<T> {
-        if(this.isSuccess()) f(this.get());
-        return this;
+    public getCause(): Error | undefined {
+        return this.errorStack;
     }
-    public onFailure(f: (ex: Error) => void): Try<T> {
-        if(this.isFailure()) f(this.getCause());
-        return this;
-    }
+
 
 
 }
