@@ -136,6 +136,16 @@ export class Try<T> {
                         }
                         break;
                     }
+                    case TryFunctions.ONSUCCESS: {
+                        if(this.isSuccess())
+                            await executionElement.functionData.func(this.value);
+                        break;
+                    }
+                    case TryFunctions.ONFAILURE: {
+                        if(this.isFailure())
+                            await executionElement.functionData.func(this.errorStack!);
+                        break;
+                    }
                     default: {
                         //This will typically run one of the static methods
                         await this.runElement(executionElement, executionElement.name === TryFunctions.OF);
@@ -270,7 +280,7 @@ export class Try<T> {
         });
         return this;
     }
-    public onFailure(fn: (value: T) => void): Try<T> {
+    public onFailure(fn: (ex: Error) => void): Try<T> {
         this.executionStack.push({
             name: TryFunctions.ONFAILURE,
             functionData: {func: fn},

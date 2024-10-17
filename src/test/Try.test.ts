@@ -197,4 +197,24 @@ describe("Try", () => {
             expect(result.isSuccess()).toBe(true);
         });
     });
+
+    describe("Try.onSuccess", () => {
+        test("onSuccess should be called on Success", async () => {
+            let tempResult = 0;
+            const result = Try.success(2).onSuccess(v => tempResult = v);
+            await expect(result.get()).resolves.toBe(2);
+            expect(tempResult).toBe(2);
+            expect(result.isSuccess()).toBe(true);
+        });
+    });
+
+    describe("Try.onFailure", () => {
+        test("onFailure should be called on Failure", async () => {
+            let tempResult = "";
+            const result = Try.failure(new Error("test error")).onFailure(e => tempResult = e.message);
+            await expect(result.get()).rejects.toThrow("test error");
+            expect(tempResult).toBe("test error");
+            expect(result.isFailure()).toBe(true);
+        });
+    });
 });
