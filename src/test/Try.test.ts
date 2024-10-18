@@ -219,15 +219,41 @@ describe("Try", () => {
     });
 
     describe("Try.combine", () => {
+
         test("combine should run all Try instances and pass the results to the provided function", async () => {
             const r = Try.success(2);
             const r2 = Try.success(3);
-            const r3 = Try.success("3");
+            const r3 = Try.of(() => {
+                if(0.6 > 0.5) return "3";
+                throw new Error("Random error");
+            });
+
 
             const f = (a: number, b: number, c: string) => a + b + c;
 
-            const r4 = await Try.combine(r, r2, r3, f).get();
-            expect(r4).toBe("53");
+            const r4 = Try.combine(r, r2, r3, f);
+
+            await expect(r4.get()).resolves.toBe("53");
+            expect(r4.isSuccess()).toBe(true);
+
+        });
+
+        test("combine should run all Try instances and results in Failure for the first instance that is a Failure", async () => {
+            const r = Try.success(2);
+            const r2 = Try.success(3);
+            const r3 = Try.of(() => {
+                if(0.3 > 0.5) return "3";
+                throw new Error("Random error");
+            });
+
+
+            const f = (a: number, b: number, c: string) => a + b + c;
+
+            const r4 = Try.combine(r, r2, r3, f);
+
+            await expect(r4.get()).rejects.toThrow("Random error");
+            expect(r4.isFailure()).toBe(true);
+
         });
     });
 });

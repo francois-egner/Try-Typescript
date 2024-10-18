@@ -152,6 +152,12 @@ export class Try<T> {
 
                 else if (executionElement.name === TryFunctions.COMBINE){
                     const values = await Promise.all(executionElement.functionData.trys!.map(async tryObject => await tryObject.run()));
+                    for(const v of values){
+                        if(v.isFailure()){
+                            this.internalError = v.internalError;
+                            break;
+                        }
+                    }
                     this.value = await executionElement.functionData.func(...values);
                 }
 
