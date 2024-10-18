@@ -1,6 +1,6 @@
 {
   "name": "try-typescript",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "This repository implements a Try class inspired by the Vavr library in Java. The Try class is a functional programming construct for handling computations that may succeed or fail. It encapsulates exceptions and streamlines error handling, reducing boilerplate code and enhancing code readability. ",
   "main": "dist/index.js",
   "scripts": {
@@ -28,5 +28,6 @@
     "functional-programming",
     "error-handling",
     "vavr"
-  ]
+  ],
+  "license": "MIT"
 }
