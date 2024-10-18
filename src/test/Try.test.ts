@@ -217,4 +217,17 @@ describe("Try", () => {
             expect(result.isFailure()).toBe(true);
         });
     });
+
+    describe("Try.combine", () => {
+        test("combine should run all Try instances and pass the results to the provided function", async () => {
+            const r = Try.success(2);
+            const r2 = Try.success(3);
+            const r3 = Try.success("3");
+
+            const f = (a: number, b: number, c: string) => a + b + c;
+
+            const r4 = await Try.combine(r, r2, r3, f).get();
+            expect(r4).toBe("53");
+        });
+    });
 });

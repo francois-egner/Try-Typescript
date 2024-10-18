@@ -2,6 +2,7 @@ import {NoSuchElementException} from "../exceptions/NoSuchElementException";
 
 const TryFunctions = {
     OF: "OF",
+    COMBINE: 'COMBINE',
     MAP: 'MAP',
     ANDTHEN: 'ANDTHEN',
     FLATMAP: 'FLATMAP',
@@ -15,7 +16,8 @@ const TryFunctions = {
 
 };
 
-type ExecutionElement = {name: string, functionData: {func: Function, fallbackFunction?: Function}, returning: boolean};
+type ExecutionElement = {name: string, functionData: {func: Function, fallbackFunction?: Function, trys?: Try<any>[]}, returning: boolean};
+
 
 export class Try<T> {
     private value: any;
@@ -25,6 +27,17 @@ export class Try<T> {
     private constructor(initExecution?: ExecutionElement) {
         if(initExecution)
             this.executionStack.push(initExecution);
+    }
+
+    static combine<T extends any[], R>(...args: [...{ [K in keyof T]: Try<T[K]> }, (...values: T) => R]): Try<R> {
+        const trys = args.slice(0, -1) as { [K in keyof T]: Try<T[K]> };
+        const func = args[args.length - 1] as (...values: T) => R;
+
+        return new Try<R>({
+            name: TryFunctions.COMBINE,
+            functionData: { func: () => func(...trys.map(tryObj => tryObj.value) as T), trys },
+            returning: true
+        });
     }
 
 
@@ -135,6 +148,11 @@ export class Try<T> {
                 else if (executionElement.name === TryFunctions.ONFAILURE){
                     if(this.isFailure())
                         await executionElement.functionData.func(this.internalError!);
+                }
+
+                else if (executionElement.name === TryFunctions.COMBINE){
+                    const values = await Promise.all(executionElement.functionData.trys!.map(async tryObject => await tryObject.run()));
+                    this.value = await executionElement.functionData.func(...values);
                 }
 
                 else {
@@ -282,6 +300,6 @@ export class Try<T> {
         return this.internalError;
     }
 
-
+    
 
 }
