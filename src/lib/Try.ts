@@ -20,7 +20,7 @@ type ExecutionElement = {name: string, functionData: {func: Function, fallbackFu
 export class Try<T> {
     private value: any;
     private executionStack: ExecutionElement[] = [];
-    private errorStack?: Error;
+    private internalError?: Error;
 
     private constructor(initExecution?: ExecutionElement) {
         if(initExecution)
@@ -53,107 +53,95 @@ export class Try<T> {
     }
 
     private setError(err: Error): Try<T> {
-        this.errorStack = err;
+        this.internalError = err;
         return this;
     }
 
 
-    private async runElement(executionElement: ExecutionElement, isFirst: boolean = false): Promise<void>{
-        try {
-            if(isFirst && executionElement.returning){
-                this.value = await executionElement.functionData.func();
-                return;
-            }
+    private async executeElement(executionElement: ExecutionElement): Promise<void>{
 
-            if(executionElement.returning){
-                this.value = await executionElement.functionData.func(this.value);
-                return;
-            }
-            await executionElement.functionData.func(this.value);
-        } catch (e) {
-            this.errorStack = e as Error;
+        if(executionElement.returning){
+            return this.value = executionElement.name === TryFunctions.OF
+                ? await executionElement.functionData.func()
+                : await executionElement.functionData.func(this.value)
         }
+
+        await executionElement.functionData.func(this.value);
+
     }
 
 
     private async runExecutionStack(): Promise<void>{
-        for (let i = 0; i < this.executionStack.length; i++) {
-            const executionElement = this.executionStack[i];
+        for(const executionElement of this.executionStack){
             try{
-                switch(executionElement.name){
-                    case TryFunctions.MAP: {
-                        if(this.isSuccess())
-                            await this.runElement(executionElement, executionElement.name === TryFunctions.OF);
-                        break;
-                    }
-                    case TryFunctions.FLATMAP: {
-                        if(this.isSuccess()){
-                            const tryObject: Try<any> = await executionElement.functionData.func(this.value);
-                            this.value = await tryObject.get();
-                        }
+                if(executionElement.name === TryFunctions.MAP){
+                    if(this.isSuccess())
+                        await this.executeElement(executionElement);
+                }
 
-                        break;
-                    }
-                    case TryFunctions.ANDTHEN: {
-                        if(this.isSuccess())
-                            await this.runElement(executionElement, executionElement.name === TryFunctions.OF);
-                        break;
-                    }
-                    case TryFunctions.FILTER: {
-                        if(this.isSuccess()){
-                            if(!await executionElement.functionData.func(this.value)){
-                                await executionElement.functionData.fallbackFunction!(this.value);
-                            }
-                        }
-                        break;
-                    }
-                    case TryFunctions.FILTERNOT: {
-                        if(this.isSuccess()){
-                            if(await executionElement.functionData.func(this.value)){
-                                await executionElement.functionData.fallbackFunction!(this.value);
-                            }
-                        }
-                        break;
-                    }
-                    case TryFunctions.PEEK: {
-                        if(this.isSuccess())
-                            await executionElement.functionData.func(this.value);
-
-                        break;
-                    }
-                    case TryFunctions.RECOVER: {
-                        if(this.isFailure()){
-                            this.errorStack = undefined;
-                            this.value = await executionElement.functionData.func(this.errorStack!);
-                        }
-                        break;
-                    }
-                    case TryFunctions.RECOVERWITH: {
-                        if(this.isFailure()){
-                            this.errorStack = undefined;
-                            const tryObject: Try<any> = await executionElement.functionData.func(this.errorStack!);
-                            this.value = await tryObject.get();
-                        }
-                        break;
-                    }
-                    case TryFunctions.ONSUCCESS: {
-                        if(this.isSuccess())
-                            await executionElement.functionData.func(this.value);
-                        break;
-                    }
-                    case TryFunctions.ONFAILURE: {
-                        if(this.isFailure())
-                            await executionElement.functionData.func(this.errorStack!);
-                        break;
-                    }
-                    default: {
-                        //This will typically run one of the static methods
-                        await this.runElement(executionElement, executionElement.name === TryFunctions.OF);
+                else if(executionElement.name === TryFunctions.FLATMAP){
+                    if(this.isSuccess()){
+                        const tryObject: Try<any> = await executionElement.functionData.func(this.value);
+                        this.value = await tryObject.get();
                     }
                 }
-            }catch(ex){
-                // @ts-ignore
-                this.errorStack = ex;
+
+                else if(executionElement.name === TryFunctions.ANDTHEN){
+                    if(this.isSuccess())
+                        await this.executeElement(executionElement);
+                }
+
+                else if(executionElement.name === TryFunctions.FILTER){
+                    if(this.isSuccess()){
+                        if(!await executionElement.functionData.func(this.value)){
+                            await executionElement.functionData.fallbackFunction!(this.value);
+                        }
+                    }
+                }
+
+                else if(executionElement.name === TryFunctions.FILTERNOT){
+                    if(this.isSuccess()){
+                        if(await executionElement.functionData.func(this.value)){
+                            await executionElement.functionData.fallbackFunction!(this.value);
+                        }
+                    }
+                }
+
+                else if(executionElement.name === TryFunctions.PEEK){
+                    if(this.isSuccess())
+                        await executionElement.functionData.func(this.value);
+                }
+
+                else if(executionElement.name === TryFunctions.RECOVER){
+                    if(this.isFailure()){
+                        this.internalError = undefined;
+                        this.value = await executionElement.functionData.func(this.internalError!);
+                    }
+                }
+
+                else if(executionElement.name === TryFunctions.RECOVERWITH){
+                    if(this.isFailure()){
+                        this.internalError = undefined;
+                        const tryObject: Try<any> = await executionElement.functionData.func(this.internalError!);
+                        this.value = await tryObject.get();
+                    }
+                }
+
+                else if (executionElement.name === TryFunctions.ONSUCCESS){
+                    if(this.isSuccess())
+                        await executionElement.functionData.func(this.value);
+                }
+
+                else if (executionElement.name === TryFunctions.ONFAILURE){
+                    if(this.isFailure())
+                        await executionElement.functionData.func(this.internalError!);
+                }
+
+                else {
+                    await this.executeElement(executionElement);
+                }
+            }catch(ex: unknown){
+                this.internalError = ex as Error;
             }
 
         }
@@ -172,7 +160,7 @@ export class Try<T> {
     public async get(): Promise<T> {
         await this.runExecutionStack()
         if (this.isFailure())
-            throw this.errorStack;
+            throw this.internalError;
 
         return this.value;
     }
@@ -182,13 +170,13 @@ export class Try<T> {
     }
     public async getOrElseGet<U>(fn: (ex: Error) => U): Promise<T | U> {
         await this.runExecutionStack()
-        return this.isFailure() ? await fn(this.errorStack!) : this.value;
+        return this.isFailure() ? await fn(this.internalError!) : this.value;
 
     }
     public async getOrElseThrow<U>(fn: (error: Error) => U): Promise<T | U> {
         await this.runExecutionStack()
         if (this.isFailure())
-            throw fn(this.errorStack!);
+            throw fn(this.internalError!);
 
         return this.value;
     }
@@ -266,10 +254,10 @@ export class Try<T> {
     }
 
     public isSuccess(): boolean {
-        return this.errorStack === undefined;
+        return this.internalError === undefined;
     }
     public isFailure(): boolean {
-        return this.errorStack !== undefined;
+        return this.internalError !== undefined;
     }
 
     public onSuccess(fn: (value: T) => void): Try<T> {
@@ -290,7 +278,8 @@ export class Try<T> {
     }
 
     public getCause(): Error | undefined {
-        return this.errorStack;
+
+        return this.internalError;
     }
 
 
