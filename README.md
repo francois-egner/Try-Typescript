@@ -1,5 +1,7 @@
 # Try-Typescript
 
+You can find this library on NPM: [Try-Typescript](https://www.npmjs.com/package/try-typescript)
+
 ## Overview
 
 This repository contains an implementation of the `Try` class, inspired by the Vavr library in Java. The `Try` class is a functional programming construct designed to handle computations that may result in success or failure. It allows developers to encapsulate exceptions and manage error handling in a more functional and expressive manner, reducing boilerplate code and improving code readability.
