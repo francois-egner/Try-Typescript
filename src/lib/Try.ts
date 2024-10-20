@@ -215,17 +215,17 @@ export class Try<T> {
         });
         return this as unknown as Try<Awaited<U>>;
     }
-    public flatMap<U>(fn: (value: T) => Try<U>) : Try<U> {
+    public flatMap<U>(fn: (value: T) => Try<U> | Promise<Try<U>>): Try<Awaited<U>> {
         this.executionStack.push({
             name: TryFunctions.FLATMAP,
             functionData: {func: fn},
             returning: true
         });
-        return this as unknown as Try<U>;
+        return this as unknown as Try<Awaited<U>>;
     }
 
 
-    public filter(predicateFunc: (value: T) => boolean, throwbackFunction?: (value: T) => void): Try<T> {
+    public filter(predicateFunc: (value: T) => boolean | Promise<boolean>, throwbackFunction?: (value: T) => void): Try<T> {
         this.executionStack.push({
             name: TryFunctions.FILTER,
             functionData: {func: predicateFunc, fallbackFunction: throwbackFunction ?? ((value: any) => {throw new NoSuchElementException(`Predicate does not hold for ${value}`)}) },
@@ -233,7 +233,7 @@ export class Try<T> {
         });
         return this;
     }
-    public filterNot(predicateFunc: (value: T) => boolean, throwbackFunction?: (value: T) => void): Try<T> {
+    public filterNot(predicateFunc: (value: T) => boolean | Promise<boolean>, throwbackFunction?: (value: T) => void): Try<T> {
         this.executionStack.push({
             name: TryFunctions.FILTERNOT,
             functionData: {func: predicateFunc, fallbackFunction: throwbackFunction ?? ((value: T) => {throw new NoSuchElementException(`Predicate does not hold for ${value}`)}) },
