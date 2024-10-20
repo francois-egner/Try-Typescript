@@ -207,13 +207,13 @@ export class Try<T> {
 
 
 
-    public map<U>(fn: (value: T) => U): Try<U> {
+    public map<U>(fn: (value: T) => U): Try<Awaited<U>> {
         this.executionStack.push({
             name: TryFunctions.MAP,
             functionData: {func: fn},
             returning: true
         });
-        return this as unknown as Try<U>;
+        return this as unknown as Try<Awaited<U>>;
     }
     public flatMap<U>(fn: (value: T) => Try<U>) : Try<U> {
         this.executionStack.push({
