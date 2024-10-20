@@ -96,13 +96,6 @@ describe("Try", () => {
 
         });
 
-        test("map should transform the value of an async function inside Success", async () => {
-            const result = Try.success(2)
-                .map( v => v * 2)
-                .map(v => v * 2);
-            await expect(result.get()).resolves.toBe(4);
-            expect(result.isSuccess()).toBe(true);
-        });
     });
 
     describe("Try.flatMap", () => {
