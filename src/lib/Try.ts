@@ -127,15 +127,15 @@ export class Try<T> {
 
                 else if(executionElement.name === TryFunctions.RECOVER){
                     if(this.isFailure()){
-                        this.internalError = undefined;
                         this.value = await executionElement.functionData.func(this.internalError!);
+                        this.internalError = undefined;
                     }
                 }
 
                 else if(executionElement.name === TryFunctions.RECOVERWITH){
                     if(this.isFailure()){
-                        this.internalError = undefined;
                         const tryObject: Try<any> = await executionElement.functionData.func(this.internalError!);
+                        this.internalError = undefined;
                         this.value = await tryObject.get();
                     }
                 }
