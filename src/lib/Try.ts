@@ -106,7 +106,7 @@ export class Try<T> {
 
                 else if(executionElement.name === TryFunctions.FILTER){
                     if(this.isSuccess()){
-                        if(!await executionElement.functionData.func(this.value)){
+                        if(await executionElement.functionData.func(this.value)){
                             await executionElement.functionData.fallbackFunction!(this.value);
                         }
                     }
@@ -114,7 +114,7 @@ export class Try<T> {
 
                 else if(executionElement.name === TryFunctions.FILTERNOT){
                     if(this.isSuccess()){
-                        if(await executionElement.functionData.func(this.value)){
+                        if(!await executionElement.functionData.func(this.value)){
                             await executionElement.functionData.fallbackFunction!(this.value);
                         }
                     }
