@@ -50,12 +50,12 @@ export class Try<T> {
         return new Try<T>().setError(error);
     }
 
-    static of<T>(fn: () => T): Try<T> {
-        return new Try<T>({
+    static of<T>(fn: () => T| Promise<T>): Try<Awaited<T>> {
+        return new Try<Awaited<T>>({
             name: TryFunctions.OF,
             functionData: {func: fn},
-            returning: true}
-        );
+            returning: true
+        });
     }
 
 
