@@ -255,7 +255,7 @@ const result = Try.failure(new CustomException("This is a test!"))
 
 <br>
 
-### `mapFailureWith<E extends Error, N extends Error>(errorType: new (...args: any[]) => E, fn: (error: E) => N): Try<T>`
+### `mapFailureWith<E extends Error, N extends Error>(errorType: new (...args: any[]) => E, fn: (error: E) => N | Promise<N>): Try<T>`
 Maps a failure of the Try instance using a function provided with the previous error if it is a Failure, otherwise returns the Success instance.
 ```typescript
 class CustomException extends Error {

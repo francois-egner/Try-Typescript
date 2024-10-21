@@ -166,7 +166,7 @@ export class Try<T> {
                 else if (executionElement.name === TryFunctions.MAPFAILUREWITH){
                     if(this.isFailure()){
                         if (this.internalError instanceof executionElement.functionData.errorType!) {
-                            this.internalError = executionElement.functionData.func(this.internalError);
+                            this.internalError = await executionElement.functionData.func(this.internalError);
                         }
                     }
                 }
@@ -248,7 +248,8 @@ export class Try<T> {
         });
         return this;
     }
-    public mapFailureWith<E extends Error, N extends Error>(errorType: new (...args: any[]) => E, fn: (error: E) => N): Try<T> {
+
+    public mapFailureWith<E extends Error, N extends Error>(errorType: new (...args: any[]) => E, fn: (error: E) => N | Promise<N>): Try<T> {
         this.executionStack.push({
             name: TryFunctions.MAPFAILUREWITH,
             functionData: {func: fn, errorType},
