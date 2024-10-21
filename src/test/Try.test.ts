@@ -80,6 +80,58 @@ describe("Try", () => {
         });
     });
 
+    describe("Try.mapFailure", () => {
+        class CustomException extends Error {
+            constructor(message: string) {
+                super(message);
+                this.name = "CustomException";
+            }
+        }
+
+        class MappedCustomException extends Error {
+            cause: string;
+            constructor(message: string, cause: string) {
+                super(message);
+                this.cause = cause;
+                this.name = "MappedCustomException";
+            }
+        }
+
+        test("Try.mapError should map an instance of CustomException to MappedCustomException", async () => {
+            const result = Try.failure(new CustomException("This is a test!"))
+                .mapFailure(CustomException, MappedCustomException);
+            await expect(result.get()).rejects.toThrow(MappedCustomException);
+            expect(result.isSuccess()).toBe(false);
+        });
+    });
+
+    describe("Try.mapFailureWith", () => {
+        class CustomException extends Error {
+            constructor(message: string) {
+                super(message);
+                this.name = "CustomException";
+            }
+        }
+
+        class MappedCustomException extends Error {
+            cause: string;
+            constructor(message: string, cause: string) {
+                super(message);
+                this.cause = cause;
+                this.name = "MappedCustomException";
+            }
+        }
+
+        test("Try.mapError should map an instance of CustomException to MappedCustomException", async () => {
+            const result = Try.failure(new CustomException("This is a test!"))
+                .mapFailureWith(CustomException, (err) => {
+                    return new MappedCustomException("Mapped Custom Exception", err.message);
+                });
+            await expect(result.get()).rejects.toThrow(MappedCustomException);
+            expect(result.isSuccess()).toBe(false);
+        });
+    });
+
     describe("Try.map", () => {
         test("map should transform the value inside Success", async () => {
             const result = Try.success(2)

@@ -229,6 +229,59 @@ const failure = await Try.failure(new Error('An error occurred'))
 
 <br>
 
+### `mapFailure<E extends Error, N extends Error>(errorType: new (...args: any[]) => E, newErrorType: new (...args: any[]) => N, ...args: any[]): Try<T>`
+Maps a failure of the Try instance if it is a Failure, otherwise returns the Success instance.
+```typescript
+class CustomException extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "CustomException";
+  }
+}
+
+class MappedCustomException extends Error {
+  cause: string;
+  constructor(message: string, cause: string) {
+    super(message);
+    this.cause = cause;
+    this.name = "MappedCustomException";
+  }
+}
+
+const result = Try.failure(new CustomException("This is a test!"))
+        .mapFailure(CustomException, MappedCustomException, "This is a message!", "This is a cause")
+        .get() // => Will throw 'MappedCustomException: This is a message!', "This is a cause!";
+```
+
+<br>
+
+### `mapFailureWith<E extends Error, N extends Error>(errorType: new (...args: any[]) => E, fn: (error: E) => N): Try<T>`
+Maps a failure of the Try instance using a function provided with the previous error if it is a Failure, otherwise returns the Success instance.
+```typescript
+class CustomException extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "CustomException";
+  }
+}
+
+class MappedCustomException extends Error {
+  cause: string;
+  constructor(message: string, cause: string) {
+    super(message);
+    this.cause = cause;
+    this.name = "MappedCustomException";
+  }
+}
+
+const result = Try.failure(new CustomException("This is a test!"))
+        .mapFailureWith(CustomException, (err) => {
+          return new MappedCustomException("Mapped Custom Exception", err.message);
+        }); // => Will throw 'MappedCustomException: Mapped Custom Exception', "This is a test!";
+```
+
+<br>
+
 ### `recover<U>(fn: (error: Error) => U): Try<T | U>`
 Recovers the value of the Try instance if it is a Failure, otherwise returns the Success instance.
 ```typescript
