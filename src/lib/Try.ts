@@ -163,18 +163,14 @@ export class Try<T> {
                     this.value = await executionElement.functionData.func(...values);
                 }
 
-                else if (executionElement.name === TryFunctions.MAPFAILUREWITH){
-                    if(this.isFailure()){
-                        if (this.internalError instanceof executionElement.functionData.errorType!) {
-                            this.internalError = await executionElement.functionData.func(this.internalError);
-                        }
-                    }
-                }
                 else if (executionElement.name === TryFunctions.MAPFAILURE){
                     if(this.isFailure()){
-                        if (this.internalError instanceof executionElement.functionData.errorType!) {
-                            this.internalError = new executionElement.functionData.newErrorType!(...executionElement.functionData.args!);
-                        }
+                            this.internalError = await executionElement.functionData.func(this.internalError);
+                    }
+                }
+                else if (executionElement.name === TryFunctions.MAPFAILUREWITH){
+                    if(this.isFailure() && this.internalError instanceof executionElement.functionData.errorType!){
+                            this.internalError = await executionElement.functionData.func(this.internalError);
                     }
                 }
                 else {
@@ -240,19 +236,19 @@ export class Try<T> {
         return this as unknown as Try<Awaited<U>>;
     }
 
-    public mapFailure<E extends Error, N extends Error>(errorType: new (...args: any[]) => E, newErrorType: new (...args: any[]) => N, ...args: any[]): Try<T> {
+    public mapFailure<E extends Error, U extends Error>(func: (ex: E) => U | Promise<U>): Try<T> {
         this.executionStack.push({
             name: TryFunctions.MAPFAILURE,
-            functionData: {func: errorType, newErrorType, args},
+            functionData: {func: func},
             returning: false
         });
         return this;
     }
 
-    public mapFailureWith<E extends Error, N extends Error>(errorType: new (...args: any[]) => E, fn: (error: E) => N | Promise<N>): Try<T> {
+    public mapFailureWith<E extends Error, U extends Error>(errorType: new (...args: any[]) => E, func: (ex: E) => U | Promise<U>): Try<T> {
         this.executionStack.push({
             name: TryFunctions.MAPFAILUREWITH,
-            functionData: {func: fn, errorType},
+            functionData: {func: func, errorType: errorType},
             returning: false
         });
         return this;

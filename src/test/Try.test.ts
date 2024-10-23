@@ -97,9 +97,9 @@ describe("Try", () => {
             }
         }
 
-        test("Try.mapError should map an instance of CustomException to MappedCustomException", async () => {
+        test("Try.mapFailure should map an instance of CustomException to MappedCustomException", async () => {
             const result = Try.failure(new CustomException("This is a test!"))
-                .mapFailure(CustomException, MappedCustomException);
+                .mapFailure(async (_)=> new MappedCustomException("Mapped Custom Exception", "Custom Exception"));
             await expect(result.get()).rejects.toThrow(MappedCustomException);
             expect(result.isSuccess()).toBe(false);
         });
@@ -122,9 +122,9 @@ describe("Try", () => {
             }
         }
 
-        test("Try.mapError should map an instance of CustomException to MappedCustomException", async () => {
+        test("Try.mapFailureWith should map an instance of CustomException to MappedCustomException", async () => {
             const result = Try.failure(new CustomException("This is a test!"))
-                .mapFailureWith(CustomException, (err) => {
+                .mapFailureWith(CustomException, async (err) => {
                     return new MappedCustomException("Mapped Custom Exception", err.message);
                 });
             await expect(result.get()).rejects.toThrow(MappedCustomException);
