@@ -229,7 +229,7 @@ const failure = await Try.failure(new Error('An error occurred'))
 
 <br>
 
-### `mapFailure<E extends Error, N extends Error>(errorType: new (...args: any[]) => E, newErrorType: new (...args: any[]) => N, ...args: any[]): Try<T>`
+### `mapFailure<E extends Error, U extends Error>(func: (ex: E) => U | Promise<U>): Try<T>`
 Maps a failure of the Try instance if it is a Failure, otherwise returns the Success instance.
 ```typescript
 class CustomException extends Error {
@@ -248,15 +248,18 @@ class MappedCustomException extends Error {
   }
 }
 
-const result = Try.failure(new CustomException("This is a test!"))
-        .mapFailure(CustomException, MappedCustomException, "This is a message!", "This is a cause")
-        .get() // => Will throw 'MappedCustomException: This is a message!', "This is a cause!";
+test("Try.mapFailure should map an instance of CustomException to MappedCustomException", async () => {
+  const result = Try.failure(new CustomException("This is a test!"))
+          .mapFailure(async (_)=> new MappedCustomException("Mapped Custom Exception", "Custom Exception"));
+  await expect(result.get()).rejects.toThrow(MappedCustomException);
+  expect(result.isSuccess()).toBe(false);
+});
 ```
 
 <br>
 
-### `mapFailureWith<E extends Error, N extends Error>(errorType: new (...args: any[]) => E, fn: (error: E) => N | Promise<N>): Try<T>`
-Maps a failure of the Try instance using a function provided with the previous error if it is a Failure, otherwise returns the Success instance.
+### `mapFailureWith<E extends Error, U extends Error>(errorType: new (...args: any[]) => E, func: (ex: E) => U | Promise<U>): Try<T>`
+Maps a failure of the Try instance if it is a specific error type using a function provided with the previous error if it is a Failure, otherwise returns the Success instance.
 ```typescript
 class CustomException extends Error {
   constructor(message: string) {
@@ -274,10 +277,14 @@ class MappedCustomException extends Error {
   }
 }
 
-const result = Try.failure(new CustomException("This is a test!"))
-        .mapFailureWith(CustomException, (err) => {
-          return new MappedCustomException("Mapped Custom Exception", err.message);
-        }); // => Will throw 'MappedCustomException: Mapped Custom Exception', "This is a test!";
+test("Try.mapFailureWith should map an instance of CustomException to MappedCustomException", async () => {
+  const result = Try.failure(new CustomException("This is a test!"))
+          .mapFailureWith(CustomException, async (err) => {
+            return new MappedCustomException("Mapped Custom Exception", err.message);
+          });
+  await expect(result.get()).rejects.toThrow(MappedCustomException);
+  expect(result.isSuccess()).toBe(false);
+});
 ```
 
 <br>
