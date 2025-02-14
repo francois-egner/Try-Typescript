@@ -336,27 +336,40 @@ const failure = await Try.failure(new Error('An error occurred'))
         .andThen(v => console.log(v)) // => Will print nothing
         .get(); // => Will throw 'An error occurred'
 ```
+<br>
 
+### `andFinally(fn: () => any): Try<T>`
+Runs the function no matter the internal state (success or failure).
+```typescript
+//Success
+let v_success;
+const success = Try.of(() => 5).andFinally(()=>{v_success = 10}); // => will set the value of v to 10
+
+
+//Failure
+let v_failure;
+const failure = Try.failure(new Error("5")).andFinally(()=>{v_failure = 10}); // => will set the value of v to 10, despite being a failure
+```
 
 
 <br>
 
 ### `filter(predicateFunc: (value: T) => boolean, throwbackFunction?: (value: T) => void): Try<T>`
-Filters the value of the Try instance if it is a Success, otherwise returns the Failure instance.
+Will throw default or run custom code if predicate is true.
 ```typescript
-//Success
+//Failure
 const value = await Try.success(10)
         .filter(v => v > 5)
-        .get(); // => 10
+        .get(); // => Will throw 'Predicate does not hold for 10'
         
-//Failure
+//Sucess
 const failure = await Try.success(10)
         .filter(v => v > 15)
-        .get(); // => Will throw 'Predicate does not hold for 10'
+        .get(); // => 10
 
 //Failure with custom error
 const failureWithCustomError = await Try.success(10)
-        .filter(v => v > 15, v => { throw new Error("Custom Predicate does not hold for " + v)})
+        .filter(v => v > 5, v => { throw new Error("Custom Predicate does not hold for " + v)})
         .get(); // => Will throw 'Custom Predicate does not hold for 10'
 ```
 
@@ -364,21 +377,21 @@ const failureWithCustomError = await Try.success(10)
 <br>
 
 ### `filterNot(predicateFunc: (value: T) => boolean, throwbackFunction?: (value: T) => void): Try<T>`
-Filters the value of the Try instance if it is a Success, otherwise returns the Failure instance.
+Will throw default or run custom code if predicate is false.
 ```typescript
-//Success
+//Failure
 const value = await Try.success(10)
         .filterNot(v => v > 15)
-        .get(); // => 10
-        
-//Failure
+        .get(); // => Will throw 'Predicate holds for 10'
+
+//Success
 const failure = await Try.success(10)
         .filterNot(v => v > 5)
-        .get(); // => Will throw 'Predicate holds for 10'
+        .get(); // => 10
 
 //Failure with custom error
 const failureWithCustomException = await Try.success(10)
-        .filterNot(v => v > 5, v => { throw new Error("Custom Predicate holds for " + v)})
+        .filterNot(v => v > 15, v => { throw new Error("Custom Predicate holds for " + v)})
         .get(); // => Will throw 'Custom Predicate holds for 10'
 ```
 
