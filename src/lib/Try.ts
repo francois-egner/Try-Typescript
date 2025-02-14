@@ -5,6 +5,7 @@ const TryFunctions = {
     COMBINE: 'COMBINE',
     MAP: 'MAP',
     ANDTHEN: 'ANDTHEN',
+    ANDFINALLY: 'ANDFINALLY',
     FLATMAP: 'FLATMAP',
     FILTER: 'FILTER',
     FILTERNOT: 'FILTERNOT',
@@ -104,6 +105,10 @@ export class Try<T> {
                 else if(executionElement.name === TryFunctions.ANDTHEN){
                     if(this.isSuccess())
                         await this.executeElement(executionElement);
+                }
+
+                else if(executionElement.name === TryFunctions.ANDFINALLY){
+                    await this.executeElement(executionElement);
                 }
 
                 else if(executionElement.name === TryFunctions.FILTER){
@@ -287,6 +292,15 @@ export class Try<T> {
             functionData: {func: fn},
             returning: false}
         );
+        return this;
+    }
+
+    public andFinally(fn: () => any): Try<T> {
+        this.executionStack.push({
+            name: TryFunctions.ANDFINALLY,
+            functionData: {func: fn},
+            returning: false
+        })
         return this;
     }
 

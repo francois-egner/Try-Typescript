@@ -1,4 +1,5 @@
 import { Try } from "../"
+import {NoSuchElementException} from "../exceptions/NoSuchElementException";
 
 describe("Try", () => {
 
@@ -78,6 +79,41 @@ describe("Try", () => {
             await expect(result.get()).rejects.toThrow("test error");
             expect(result.isFailure()).toBe(true);
         });
+    });
+
+    describe("Try.andThen", () => {
+        test("Try.andThen not modify the Try state and set and outside variable", async () => {
+            let v;
+            const result = Try.of(() => 5).andThen((value)=>{v =  value * 2});
+            await expect(result.get()).resolves.toBe(5);
+            expect(result.isSuccess()).toBe(true);
+            expect(v).toBe(10);
+        });
+
+        test("Try.andThen should bring Try object into failure state with Custom Exception", async ()=> {
+            const result = Try.of(() => 5).andThen((value)=>{throw new NoSuchElementException(`${value}`)})
+            await expect(result.get()).rejects.toThrow("5");
+            expect(result.isFailure()).toBe(true);
+        })
+    });
+
+    describe("Try.andFinally", () => {
+        test("Try.andFinally set outside value to 5 on success state", async () => {
+            let v;
+            const result = Try.of(() => 5).andFinally(()=>{v = 10});
+            await expect(result.get()).resolves.toBe(5);
+            expect(result.isSuccess()).toBe(true);
+            expect(v).toBe(10);
+        });
+
+        test("Try.andFinally set outside value to 5 on failure state", async () => {
+            let v;
+            const result = Try.failure(new Error("5")).andFinally(()=>{v = 10});
+            await expect(result.get()).rejects.toThrow("5");
+            expect(result.isFailure()).toBe(true);
+            expect(v).toBe(10);
+        });
+
     });
 
     describe("Try.mapFailure", () => {
