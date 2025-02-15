@@ -1,6 +1,6 @@
-## [0.8.1] - 2025-02-15
+## [1.0.0] - 2025-02-15
 ### Fixed
-- Function signature of `filter` and `filterNot` changed to return an Error (or an instance deriving from it)
+- Function signature of `filter` and `filterNot` changed to return an Error (or an instance deriving from it) instead of nothing.
 
 ## [0.8.0] - 2025-02-14
 ### Added
