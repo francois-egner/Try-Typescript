@@ -23,7 +23,7 @@ export class Try<T> {
         return new Try([()=> of(func)]);
     }
 
-    static combine<T extends any[], R>(...args: [...{ [K in keyof T]: Try<T[K]> }, (...values: T) => R]): Try<R> {
+    static combine<T extends any[], R>(...args: [...{ [K in keyof T]: Try<T[K]> }, (...values: T) => R | Promise<R>]): Try<R> {
         // @ts-ignore
         return new Try([()=> combine(...args)]);
     }
@@ -36,11 +36,11 @@ export class Try<T> {
         return new Try([()=> failure(err)]);
     }
 
-    public map<U>(func: (value: T) => U): Try<U> {
+    public map<U>(func: (value: T) => U | Promise<U>): Try<U> {
         return new Try([...this.steps, (prev: Result)=> map(prev, func)])
     }
 
-    public mapIf<U>(predicateFunc: (value: T) => boolean | Promise<boolean>, func: (value: T) => U): Try<U>{
+    public mapIf<U>(predicateFunc: (value: T) => boolean | Promise<boolean>, func: (value: T) => U | Promise<U>): Try<U>{
         return new Try([...this.steps, (prev: Result)=> mapIf(prev, predicateFunc, func)])
     }
 
@@ -60,7 +60,7 @@ export class Try<T> {
         return getOrElse(this, fallbackValue);
     }
 
-    public async getOrElseGet<U>(func: (ex: Error) => U): Promise<T | U> {
+    public async getOrElseGet<U>(func: (ex: Error) => U | Promise<U>): Promise<T | U> {
         return getOrElseGet(this, func)
     }
 
@@ -114,7 +114,6 @@ export class Try<T> {
     public andFinally(func: () => Promise<void> | void): Try<T> {
         return new Try([...this.steps, (prev: Result)=> andFinally(prev, func)])
     }
-
 
     public mapFailure(func: (ex: Error) => Error | Promise<Error>): Try<T>{
         return new Try([...this.steps, (prev: Result)=> mapFailure(prev, func)])
