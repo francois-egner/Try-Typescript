@@ -4,9 +4,11 @@ const TryFunctions = {
     OF: "OF",
     COMBINE: 'COMBINE',
     MAP: 'MAP',
+    MAPIF: 'MAPIF',
     ANDTHEN: 'ANDTHEN',
     ANDFINALLY: 'ANDFINALLY',
     FLATMAP: 'FLATMAP',
+    FLATMAPIF: 'FLATMAPIF',
     FILTER: 'FILTER',
     FILTERNOT: 'FILTERNOT',
     PEEK: 'PEEK',
@@ -15,7 +17,8 @@ const TryFunctions = {
     ONSUCCESS: 'ONSUCCESS',
     ONFAILURE: 'ONFAILURE',
     MAPFAILURE: 'MAPFAILURE',
-    MAPFAILUREWITH: 'MAPFAILUREWITH'
+    MAPFAILUREWITH: 'MAPFAILUREWITH',
+
 
 };
 
@@ -95,10 +98,28 @@ export class Try<T> {
                         await this.executeElement(executionElement);
                 }
 
+                else if(executionElement.name === TryFunctions.MAPIF){
+                    if(this.isSuccess()){
+                        if(await executionElement.functionData.fallbackFunction!(this.value)){
+                            await this.executeElement(executionElement);
+                        }
+                    }
+                }
+
                 else if(executionElement.name === TryFunctions.FLATMAP){
                     if(this.isSuccess()){
                         const tryObject: Try<any> = await executionElement.functionData.func(this.value);
                         this.value = await tryObject.get();
+                    }
+                }
+
+                else if(executionElement.name === TryFunctions.FLATMAPIF){
+                    if(this.isSuccess()){
+                        if(await executionElement.functionData.fallbackFunction!(this.value)){
+                            const tryObject: Try<any> = await executionElement.functionData.func(this.value);
+                            this.value = await tryObject.get();
+                        }
+
                     }
                 }
 
@@ -205,15 +226,18 @@ export class Try<T> {
 
         return this.value;
     }
+
     public async getOrElse<U>(defaultValue: U): Promise<U | T> {
         await this.runExecutionStack()
         return this.isFailure() ? defaultValue : this.value;
     }
+
     public async getOrElseGet<U>(fn: (ex: Error) => U): Promise<T | U> {
         await this.runExecutionStack()
         return this.isFailure() ? await fn(this.internalError!) : this.value;
 
     }
+
     public async getOrElseThrow<U>(fn: (error: Error) => U): Promise<T | U> {
         await this.runExecutionStack()
         if (this.isFailure())
@@ -232,6 +256,17 @@ export class Try<T> {
         });
         return this as unknown as Try<Awaited<U>>;
     }
+
+    public mapIf<U>(predicateFunc: (value: T) => boolean | Promise<boolean>, fn: (value: T) => U): Try<Awaited<U>> {
+        this.executionStack.push({
+            name: TryFunctions.MAPIF,
+            functionData: {func: fn, fallbackFunction: predicateFunc},
+            returning: true
+        });
+        return this as unknown as Try<Awaited<U>>;
+    }
+
+
     public flatMap<U>(fn: (value: T) => Try<U> | Promise<Try<U>>): Try<Awaited<U>> {
         this.executionStack.push({
             name: TryFunctions.FLATMAP,
@@ -240,6 +275,16 @@ export class Try<T> {
         });
         return this as unknown as Try<Awaited<U>>;
     }
+
+    public flatMapIf<U>(predicateFunc: (value: T) => boolean | Promise<boolean>, fn: (value: T) => Try<U> | Promise<Try<U>>): Try<Awaited<U>> {
+        this.executionStack.push({
+            name: TryFunctions.FLATMAPIF,
+            functionData: {func: fn, fallbackFunction: predicateFunc},
+            returning: true
+        });
+        return this as unknown as Try<Awaited<U>>;
+    }
+
 
     public mapFailure<E extends Error, U extends Error>(func: (ex: E) => U | Promise<U>): Try<T> {
         this.executionStack.push({

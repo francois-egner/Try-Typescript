@@ -210,8 +210,28 @@ const failure = await Try.failure(new Error('An error occurred'))
         .map(v => v + 1)
         .get(); // => Will throw 'An error occurred'
 ```
+<br>
+
+### `mapIf<U>(predicateFunc: (value: T) => boolean | Promise<boolean>, fn: (value: T) => U): Try<U>`
+Maps the value of the Try instance if it is a Success and the predicate function evaluates to true. If not, the original state will be returned.
+```typescript
+//Success
+const value = await Try.success(10)
+        .mapIf((v)=> v % 2 === 0, v => v + 1)
+        .get(); // => 11
+
+const value = await Try.success(21)
+        .mapIf((v)=> v % 2 === 0, v => v + 1)
+        .get(); // => 21
+
+//Failure
+const failure = await Try.failure(new Error('An error occurred'))
+        .mapIf((v)=> v % 2 === 0, v => v + 1)
+        .get(); // => Will throw 'An error occurred'
+```
 
 <br>
+
 
 ### `flatMap<U>(fn: (value: T) => Try<U>) : Try<U>`
 Maps the value of the Try instance if it is a Success, otherwise returns the Failure instance.
@@ -224,6 +244,25 @@ const value = await Try.success(10)
 //Failure
 const failure = await Try.failure(new Error('An error occurred'))
         .flatMap(v => Try.success(v + 1))
+        .get(); // => Will throw 'An error occurred'
+```
+<br>
+
+### `flatMapIf<U>(predicateFunc: (value: T) => boolean | Promise<boolean>, fn: (value: T) => Try<U> | Promise<Try<U>>): Try<U>`
+Maps the value of the Try instance if it is a Success and the predicate is true. If not, the original state will be returned.
+```typescript
+//Success
+const value = await Try.success(10)
+        .flatMapIf((v)=> v % 2 === 0, v => Try.success(v + 1))
+        .get(); // => 11
+
+const value = await Try.success(21)
+        .flatMapIf((v)=> v % 2 === 0, v => Try.success(v + 1))
+        .get(); // => 21
+
+//Failure
+const failure = await Try.failure(new Error('An error occurred'))
+        .flatMapIf((v)=> v % 2 === 0, v => Try.success(v + 1))
         .get(); // => Will throw 'An error occurred'
 ```
 
@@ -277,14 +316,14 @@ class MappedCustomException extends Error {
   }
 }
 
-test("Try.mapFailureWith should map an instance of CustomException to MappedCustomException", async () => {
-  const result = Try.failure(new CustomException("This is a test!"))
-          .mapFailureWith(CustomException, async (err) => {
-            return new MappedCustomException("Mapped Custom Exception", err.message);
-          });
-  await expect(result.get()).rejects.toThrow(MappedCustomException);
-  expect(result.isSuccess()).toBe(false);
-});
+
+const result = Try.failure(new CustomException("This is a test!"))
+        .mapFailureWith(CustomException, async (err) => {
+          return new MappedCustomException("Mapped Custom Exception", err.message);
+        });
+await expect(result.get()).rejects.toThrow(MappedCustomException);
+expect(result.isSuccess()).toBe(false);
+
 ```
 
 <br>

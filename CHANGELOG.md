@@ -1,3 +1,7 @@
+## [1.1.0] - 2025-02-15
+### Added
+- `mapIf` and `flatMapIf` for conditional mapping
+
 ## [1.0.0] - 2025-02-15
 ### Fixed
 - Function signature of `filter` and `filterNot` changed to return an Error (or an instance deriving from it) instead of nothing.
