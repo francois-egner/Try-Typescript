@@ -1,3 +1,8 @@
+## [1.1.1] - 2025-02-15
+### Fixed
+- Several function type signature
+- Rewritten the whole library for better readibility
+
 ## [1.1.0] - 2025-02-15
 ### Added
 - `mapIf` and `flatMapIf` for conditional mapping

@@ -93,7 +93,6 @@ export class Try<T> {
         return new Try([...this.steps, (prev: Result)=> recoverWith(prev, func)])
     }
 
-
     public async get(): Promise<T> {
         return get(this);
     }
