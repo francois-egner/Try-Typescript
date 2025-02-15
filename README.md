@@ -19,7 +19,7 @@ This repository contains an implementation of the `Try` class, inspired by the V
 
 ## Initialization functions
 
-### `of<T>(fn: () => T): Try<T>`
+### `static of<T>(func: () => T | Promise<T>): Try<T>`
 Creates a Try instance from a function that may throw an error.
 ```typescript
 const of = await Try.of(() => {
@@ -33,7 +33,7 @@ const of = await Try.of(() => {
 <br>
 
 
-### `combine<T extends any[], R>(...args: [...{ [K in keyof T]: Try<T[K]> }, (...values: T) => R]): Try<R>`
+### `combine<T extends any[], R>(...args: [...{ [K in keyof T]: Try<T[K]> }, (...values: T) => R | Promise<R>]): Try<R>`
 Sometimes you may want to combine multiple Try instances into one. This function allows you to do that. It takes multiple Try instances and a function that will be executed if all Try instances are successful. If one of the Try instances is a failure, the function will not be executed and the resulting Try instance will be a failure. <br>
 ```typescript
 //All passed Try instances are successful
@@ -65,7 +65,7 @@ await r4.get(); //=> Will throw 'Random error'
 ```
 <br>
 
-### `success<T>(value: T): Try<T>`
+### `success<U>(value:U): Try<U>`
 Creates a Try instance with a successful value.
 ```typescript
 const success = await Try.success(10).get(); // => 10
@@ -147,7 +147,7 @@ const failure = await Try.failure(new Error('An error occurred')).getOrElse(0); 
 
 <br>
 
-### `getOrElseGet<U>(fn: (ex: Error) => U): Promise<T | U>`
+### `getOrElseGet<U>(func: (ex: Error) => U | Promise<U>): Promise<T | U>`
 Returns the value of the Try instance if it is a Success, otherwise returns the value returned by the function.
 ```typescript
 //Success
@@ -159,7 +159,7 @@ const failure = await Try.failure(new Error('An error occurred')).getOrElseGet((
 
 <br>
 
-### `getOrElseThrow<U>(fn: (error: Error) => U): Promise<T | U>`
+### `getOrElseThrow(func: (error: Error) => Promise<Error> | Error): Promise<T>`
 Returns the value of the Try instance if it is a Success, otherwise throws the error returned by the function.
 ```typescript
 //Success
@@ -197,7 +197,7 @@ const failure = Try.failure(new Error('An error occurred')).run().isFailure(); /
 
 <br>
 
-### `map<U>(fn: (value: T) => U): Try<U>`
+### `map<U>(func: (value: T) => U | Promise<U>): Try<U>`
 Maps the value of the Try instance if it is a Success, otherwise returns the Failure instance.
 ```typescript
 //Success
@@ -212,7 +212,7 @@ const failure = await Try.failure(new Error('An error occurred'))
 ```
 <br>
 
-### `mapIf<U>(predicateFunc: (value: T) => boolean | Promise<boolean>, fn: (value: T) => U): Try<U>`
+### `mapIf<U>(predicateFunc: (value: T) => boolean | Promise<boolean>, func: (value: T) => U | Promise<U>): Try<U>`
 Maps the value of the Try instance if it is a Success and the predicate function evaluates to true. If not, the original state will be returned.
 ```typescript
 //Success
@@ -233,7 +233,7 @@ const failure = await Try.failure(new Error('An error occurred'))
 <br>
 
 
-### `flatMap<U>(fn: (value: T) => Try<U>) : Try<U>`
+### `flatMap<U>(func: (value: T) => Try<U> | Promise<Try<U>>): Try<U>`
 Maps the value of the Try instance if it is a Success, otherwise returns the Failure instance.
 ```typescript
 //Success
@@ -248,7 +248,7 @@ const failure = await Try.failure(new Error('An error occurred'))
 ```
 <br>
 
-### `flatMapIf<U>(predicateFunc: (value: T) => boolean | Promise<boolean>, fn: (value: T) => Try<U> | Promise<Try<U>>): Try<U>`
+### `flatMapIf<U>(predicateFunc: (value: T) => boolean | Promise<boolean>, func: (value: T) => Try<U> | Promise<Try<U>>): Try<U>`
 Maps the value of the Try instance if it is a Success and the predicate is true. If not, the original state will be returned.
 ```typescript
 //Success
@@ -268,7 +268,7 @@ const failure = await Try.failure(new Error('An error occurred'))
 
 <br>
 
-### `mapFailure<E extends Error, U extends Error>(func: (ex: E) => U | Promise<U>): Try<T>`
+### `mapFailure(func: (ex: Error) => Error | Promise<Error>): Try<T>`
 Maps a failure of the Try instance if it is a Failure, otherwise returns the Success instance.
 ```typescript
 class CustomException extends Error {
@@ -287,11 +287,9 @@ class MappedCustomException extends Error {
   }
 }
 
-test("Try.mapFailure should map an instance of CustomException to MappedCustomException", async () => {
+
   const result = Try.failure(new CustomException("This is a test!"))
-          .mapFailure(async (_)=> new MappedCustomException("Mapped Custom Exception", "Custom Exception"));
-  await expect(result.get()).rejects.toThrow(MappedCustomException);
-  expect(result.isSuccess()).toBe(false);
+          .mapFailure(async (_)=> new MappedCustomException("Mapped Custom Exception", "Custom Exception"))
 });
 ```
 
@@ -328,7 +326,7 @@ expect(result.isSuccess()).toBe(false);
 
 <br>
 
-### `recover<U>(fn: (error: Error) => U): Try<T | U>`
+### `recover<U>(func: (error: Error) => U | Promise<U>): Try<T | U>`
 Recovers the value of the Try instance if it is a Failure, otherwise returns the Success instance.
 ```typescript
 //Success
@@ -345,7 +343,7 @@ const failure = await Try.failure(new Error('An error occurred'))
 
 <br>
 
-### `recoverWith<U>(fn: (error: Error) => Try<U>): Try<U | T>`
+### `recoverWith<U>(func: (error: Error) => Try<U> | Promise<Try<U>>): Try<U | T>`
 Recovers the value of the Try instance if it is a Failure, otherwise returns the Success instance.
 ```typescript
 //Success
@@ -362,7 +360,7 @@ const failure = await Try.failure(new Error('An error occurred'))
 
 <br>
 
-### `andThen(fn: (value: T) => any): Try<T>`
+### `andThen(func: (value: T) => Promise<void> | void): Try<T>`
 Runs the function if the Try instance is a Success.
 ```typescript
 //Success
@@ -377,7 +375,7 @@ const failure = await Try.failure(new Error('An error occurred'))
 ```
 <br>
 
-### `andFinally(fn: () => any): Try<T>`
+### `andFinally(func: () => Promise<void> | void): Try<T>`
 Runs the function no matter the internal state (success or failure).
 ```typescript
 //Success
@@ -393,7 +391,7 @@ const failure = Try.failure(new Error("5")).andFinally(()=>{v_failure = 10}); //
 
 <br>
 
-### `filter(predicateFunc: (value: T) => boolean, throwbackFunction?: (value: T) => Error): Try<T>`
+### `filter(predicateFunc: (value: T) => boolean | Promise<boolean>, errorProvider?: (value: T) => Error): Try<T>`
 Will throw default or custom Error if predicate is true.
 ```typescript
 //Failure
@@ -415,7 +413,7 @@ const failureWithCustomError = await Try.success(10)
 
 <br>
 
-### `filterNot(predicateFunc: (value: T) => boolean, throwbackFunction?: (value: T) => Error): Try<T>`
+### `filterNot(predicateFunc: (value: T) => boolean | Promise<boolean>, errorProvider?: (value: T) => Error): Try<T>`
 Will throw default or custom Error if predicate is false.
 ```typescript
 //Failure
@@ -436,7 +434,7 @@ const failureWithCustomException = await Try.success(10)
 
 <br>
 
-### `onFailure(fn: (ex: Error) => void): Try<T>`
+### `onFailure(func: (value: Error) => Promise<void> | void): Try<T>`
 Runs the function if the Try instance is a Failure.
 ```typescript
 //Success
@@ -453,7 +451,7 @@ const failure = await Try.failure(new Error('An error occurred'))
 
 <br>
 
-### `onSuccess(fn: (value: T) => void): Try<T>`
+### `onSuccess(func: (value: T) => Promise<void> | void): Try<T>`
 Runs the function if the Try instance is a Success.
 ```typescript
 //Success
@@ -483,7 +481,7 @@ const failure = Try.failure(new Error('An error occurred')).getCause(); // => Er
 
 <br>
 
-### `peek(fn: (value: T) => void): Try<T>`
+### `peek(func: (value: T) => Promise<void> | void): Try<T>`
 Peeks the value of the Try instance if it is a Success, otherwise returns the Failure instance.
 ```typescript
 //Success

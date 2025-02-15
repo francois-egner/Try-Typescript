@@ -52,7 +52,7 @@ export class Try<T> {
         return new Try([...this.steps, (prev: Result)=> flatMap(prev, func)])
     }
 
-    public flatMapIf<U>(predicateFunc: (value: T) => boolean | Promise<boolean>, func: (value: T) => Try<U> | Promise<Try<U>>): Try<Awaited<U>>{
+    public flatMapIf<U>(predicateFunc: (value: T) => boolean | Promise<boolean>, func: (value: T) => Try<U> | Promise<Try<U>>): Try<U>{
         return new Try([...this.steps, (prev: Result)=> flatMapIf(prev, predicateFunc, func)])
     }
 
@@ -130,11 +130,5 @@ export class Try<T> {
     public onFailure(func: (value: Error) => Promise<void> | void): Try<T>{
         return new Try([...this.steps, (prev: Result)=> onFailure(prev, func)])
     }
-
-    public static test(){
-        Try.of(()=> 4).map((v)=> v * 2).run().then((t)=> console.log(t));
-    }
-
-
 
 }
