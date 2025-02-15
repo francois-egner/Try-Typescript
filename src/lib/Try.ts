@@ -1,19 +1,11 @@
 import {
-    of,
-    success,
-    failure,
-    get,
-    map,
-    run,
-    getOrElse,
-    getOrElseGet,
-    getOrElseThrow,
-    andThen,
-    onSuccess,
-    onFailure,
-    andFinally, mapFailure, mapIf,
-    flatMap, flatMapIf,
-    filter, filterNot, recover, recoverWith, mapFailureWith, combine
+    of, success, failure, combine,
+    get, getOrElse, getOrElseGet, getOrElseThrow, run,
+    map, mapIf, flatMap, flatMapIf, mapFailure,
+    andThen,  andFinally,
+    onSuccess, onFailure,
+    filter, filterNot, mapFailureWith,
+    recover, recoverWith,
 } from "./functions";
 import {Result} from "./Result";
 
@@ -127,8 +119,6 @@ export class Try<T> {
     public mapFailure(func: (ex: Error) => Error | Promise<Error>): Try<T>{
         return new Try([...this.steps, (prev: Result)=> mapFailure(prev, func)])
     }
-
-
 
     public getCause(): Error | undefined {
         return this._finalResult!.getError()

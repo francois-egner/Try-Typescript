@@ -1,4 +1,4 @@
-import {Result} from "../Result";
+import {Result} from "../../Result";
 
 
 export async function onFailure(prev: Result, func: (v: Error) => Promise<void> | void): Promise<Result>{

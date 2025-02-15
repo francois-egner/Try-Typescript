@@ -1,5 +1,5 @@
-import {Result} from "../Result";
-import {Try} from "../Try";
+import {Result} from "../../Result";
+import {Try} from "../../Try";
 
 
 

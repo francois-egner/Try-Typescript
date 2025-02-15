@@ -1,5 +1,5 @@
-import {Try} from "../Try";
-import {runSteps} from "./helpers";
+import {Try} from "../../Try";
+import {runSteps} from "../helpers";
 
 export async function getOrElseGet(tryObject: Try<unknown>, func: (err: Error) => any){
     const finalResult = await runSteps(tryObject.steps);

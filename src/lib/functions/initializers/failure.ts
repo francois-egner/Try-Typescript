@@ -1,4 +1,4 @@
-import {Result} from "../Result";
+import {Result} from "../../Result";
 
 
 export async function failure(err: Error): Promise<Result> {

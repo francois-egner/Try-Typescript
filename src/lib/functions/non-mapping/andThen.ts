@@ -1,4 +1,4 @@
-import {Result} from "../Result";
+import {Result} from "../../Result";
 
 
 export async function andThen(prev: Result, func: (v: any)=> void): Promise<Result>{
