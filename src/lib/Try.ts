@@ -278,7 +278,7 @@ export class Try<T> {
 
     public flatMapIf<U>(predicateFunc: (value: T) => boolean | Promise<boolean>, fn: (value: T) => Try<U> | Promise<Try<U>>): Try<Awaited<U>> {
         this.executionStack.push({
-            name: TryFunctions.FLATMAP,
+            name: TryFunctions.FLATMAPIF,
             functionData: {func: fn, fallbackFunction: predicateFunc},
             returning: true
         });
