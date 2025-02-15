@@ -225,6 +225,28 @@ describe("Try", () => {
         });
     });
 
+    describe("Try.flatMapIf", () => {
+
+        test("flatMapIf should transform the value inside Success if predicate is true", async () => {
+            const result = Try.success(2).flatMapIf((v)=> v % 2 === 0, v => Try.success(v * 2));
+            await expect(result.get()).resolves.toBe(4);
+            expect(result.isSuccess()).toBe(true);
+        });
+
+        test("flatMapIf shouldnt transform the value inside Success if predicate is false", async () => {
+            const result = Try.success(3).flatMapIf((v)=> v % 2 === 0, v => Try.success(v * 2));
+            await expect(result.get()).resolves.toBe(3);
+            expect(result.isSuccess()).toBe(true);
+        });
+
+        test("flatMap should not transform the value inside Failure", async () => {
+            // @ts-ignore
+            const result = Try.failure(new Error("test error")).flatMapIf((v)=> v % 2 === 0, v => Try.success(v * 2));
+            await expect(() => result.get()).rejects.toThrow("test error");
+            expect(result.isFailure()).toBe(true);
+        });
+    });
+
     describe("Try.filterNot", () => {
 
         test("filter should return Failure if predicate does not hold", async () => {

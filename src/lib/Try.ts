@@ -8,6 +8,7 @@ const TryFunctions = {
     ANDTHEN: 'ANDTHEN',
     ANDFINALLY: 'ANDFINALLY',
     FLATMAP: 'FLATMAP',
+    FLATMAPIF: 'FLATMAPIF',
     FILTER: 'FILTER',
     FILTERNOT: 'FILTERNOT',
     PEEK: 'PEEK',
@@ -109,6 +110,16 @@ export class Try<T> {
                     if(this.isSuccess()){
                         const tryObject: Try<any> = await executionElement.functionData.func(this.value);
                         this.value = await tryObject.get();
+                    }
+                }
+
+                else if(executionElement.name === TryFunctions.FLATMAPIF){
+                    if(this.isSuccess()){
+                        if(await executionElement.functionData.fallbackFunction!(this.value)){
+                            const tryObject: Try<any> = await executionElement.functionData.func(this.value);
+                            this.value = await tryObject.get();
+                        }
+
                     }
                 }
 
@@ -264,6 +275,16 @@ export class Try<T> {
         });
         return this as unknown as Try<Awaited<U>>;
     }
+
+    public flatMapIf<U>(predicateFunc: (value: T) => boolean | Promise<boolean>, fn: (value: T) => Try<U> | Promise<Try<U>>): Try<Awaited<U>> {
+        this.executionStack.push({
+            name: TryFunctions.FLATMAP,
+            functionData: {func: fn, fallbackFunction: predicateFunc},
+            returning: true
+        });
+        return this as unknown as Try<Awaited<U>>;
+    }
+
 
     public mapFailure<E extends Error, U extends Error>(func: (ex: E) => U | Promise<U>): Try<T> {
         this.executionStack.push({
