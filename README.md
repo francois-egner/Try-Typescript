@@ -211,6 +211,24 @@ const failure = await Try.failure(new Error('An error occurred'))
         .get(); // => Will throw 'An error occurred'
 ```
 
+### `mapIf<U>(predicateFunc: (value: T) => boolean | Promise<boolean>, fn: (value: T) => U): Try<U>`
+Maps the value of the Try instance if it is a Success and the predicate function evaluates to true. If not, the original state will be returned.
+```typescript
+//Success
+const value = await Try.success(10)
+        .mapIf((v)=> v % 2 === 0, v => v + 1)
+        .get(); // => 11
+
+const value = await Try.success(21)
+        .mapIf((v)=> v % 2 === 0, v => v + 1)
+        .get(); // => 21
+
+//Failure
+const failure = await Try.failure(new Error('An error occurred'))
+        .mapIf((v)=> v % 2 === 0, v => v + 1)
+        .get(); // => Will throw 'An error occurred'
+```
+
 <br>
 
 ### `flatMap<U>(fn: (value: T) => Try<U>) : Try<U>`

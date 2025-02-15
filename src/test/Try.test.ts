@@ -186,6 +186,30 @@ describe("Try", () => {
 
     });
 
+    describe("Try.mapIf", () => {
+        test("mapIf should transform the value inside Success if the predicate is true", async () => {
+            const result = Try.success(2)
+                .mapIf((v)=> v % 2 === 0, (v) => v * 2);
+            await expect(result.get()).resolves.toBe(4);
+            expect(result.isSuccess()).toBe(true);
+        });
+
+        test("mapIf shouldnt transform the value inside Success if the predicate is false", async () => {
+            const result = Try.success(3)
+                .mapIf((v)=> v % 2 === 0, (v) => v * 2);
+            await expect(result.get()).resolves.toBe(3);
+            expect(result.isSuccess()).toBe(true);
+        });
+
+        test("mapIf should not transform the value inside Failure", async () => {
+            // @ts-ignore
+            const result = Try.failure(new Error("test error")).mapIf((v)=> v % 2 === 0, v => v * 2);
+            await expect(result.get()).rejects.toThrow("test error");
+            expect(result.isFailure()).toBe(true);
+
+        });
+    });
+
     describe("Try.flatMap", () => {
         test("flatMap should transform the value inside Success", async () => {
             const result = Try.success(2).flatMap(v => Try.success(v * 2));
