@@ -1,7 +1,7 @@
 import {Result} from "../../Result";
 
 
-export async function andThen(prev: Result, func: (v: any)=> void): Promise<Result>{
+export async function andThen(prev: Result, func: (v: any)=> Promise<void> | void): Promise<Result>{
     if(prev.isError())
         return prev
 

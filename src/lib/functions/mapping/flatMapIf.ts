@@ -7,7 +7,7 @@ export async function flatMapIf(prev: Result, predicate: (v: any) => Promise<boo
 
     try{
         const tryObject = await func(prev.getValue())
-        prev.setValue(tryObject.get())
+        prev.setValue(await tryObject.get())
     }catch(err: unknown){
         prev.setError(err as Error);
     }

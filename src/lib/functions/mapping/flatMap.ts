@@ -8,7 +8,7 @@ export async function flatMap(prev: Result, func: (value: any) => Try<any> | Pro
 
     try{
         const tryObject = await func(prev.getValue())
-        prev.setValue(tryObject.get())
+        prev.setValue(await tryObject.get())
     }catch(err: unknown){
         prev.setError(err as Error);
     }
