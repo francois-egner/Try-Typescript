@@ -114,7 +114,7 @@ export class Try<T> {
                 else if(executionElement.name === TryFunctions.FILTER){
                     if(this.isSuccess()){
                         if(await executionElement.functionData.func(this.value)){
-                            await executionElement.functionData.fallbackFunction!(this.value);
+                            throw await executionElement.functionData.fallbackFunction!(this.value);
                         }
                     }
                 }
@@ -122,7 +122,7 @@ export class Try<T> {
                 else if(executionElement.name === TryFunctions.FILTERNOT){
                     if(this.isSuccess()){
                         if(!await executionElement.functionData.func(this.value)){
-                            await executionElement.functionData.fallbackFunction!(this.value);
+                            throw await executionElement.functionData.fallbackFunction!(this.value);
                         }
                     }
                 }
@@ -260,15 +260,15 @@ export class Try<T> {
     }
 
 
-    public filter(predicateFunc: (value: T) => boolean | Promise<boolean>, throwbackFunction?: (value: T) => void): Try<T> {
+    public filter(predicateFunc: (value: T) => boolean | Promise<boolean>, throwbackFunction?: (value: T) => Error): Try<T> {
         this.executionStack.push({
             name: TryFunctions.FILTER,
-            functionData: {func: predicateFunc, fallbackFunction: throwbackFunction ?? ((value: any) => {throw new NoSuchElementException(`Predicate does not hold for ${value}`)}) },
+            functionData: {func: predicateFunc, fallbackFunction: throwbackFunction ?? ((value: T) => {throw new NoSuchElementException(`Predicate does not hold for ${value}`)}) },
             returning: false
         });
         return this;
     }
-    public filterNot(predicateFunc: (value: T) => boolean | Promise<boolean>, throwbackFunction?: (value: T) => void): Try<T> {
+    public filterNot(predicateFunc: (value: T) => boolean | Promise<boolean>, throwbackFunction?: (value: T) => Error): Try<T> {
         this.executionStack.push({
             name: TryFunctions.FILTERNOT,
             functionData: {func: predicateFunc, fallbackFunction: throwbackFunction ?? ((value: T) => {throw new NoSuchElementException(`Predicate does not hold for ${value}`)}) },

@@ -202,6 +202,7 @@ describe("Try", () => {
     });
 
     describe("Try.filterNot", () => {
+
         test("filter should return Failure if predicate does not hold", async () => {
             const result = Try.success(2).filterNot(v => v > 2);
             await expect(result.get()).rejects.toThrow("Predicate does not hold for 2");
@@ -209,7 +210,7 @@ describe("Try", () => {
         });
 
         test("filter should throw custom exception if predicate does not hold", async () => {
-            const result = Try.success(2).filterNot(v => v > 2, v => { throw new Error("Custom Predicate does not hold for " + v) });
+            const result = Try.success(2).filterNot(v => v > 2, v => Error("Custom Predicate does not hold for " + v));
             await expect(result.get()).rejects.toThrow("Custom Predicate does not hold for 2");
             expect(result.isFailure()).toBe(true);
         });
@@ -230,7 +231,7 @@ describe("Try", () => {
         });
 
         test("filterNot should throw custom exception if predicate does not hold", async () => {
-            const result = Try.success(2).filter(v => v <= 2, v => { throw new Error("Custom Predicate does not hold for " + v) });
+            const result = Try.success(2).filter(v => v <= 2, v => Error("Custom Predicate does not hold for " + v));
             await expect(result.get()).rejects.toThrow("Custom Predicate does not hold for 2");
             expect(result.isFailure()).toBe(true);
         });
