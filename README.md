@@ -354,8 +354,8 @@ const failure = Try.failure(new Error("5")).andFinally(()=>{v_failure = 10}); //
 
 <br>
 
-### `filter(predicateFunc: (value: T) => boolean, throwbackFunction?: (value: T) => void): Try<T>`
-Will throw default or run custom code if predicate is true.
+### `filter(predicateFunc: (value: T) => boolean, throwbackFunction?: (value: T) => Error): Try<T>`
+Will throw default or custom Error if predicate is true.
 ```typescript
 //Failure
 const value = await Try.success(10)
@@ -376,8 +376,8 @@ const failureWithCustomError = await Try.success(10)
 
 <br>
 
-### `filterNot(predicateFunc: (value: T) => boolean, throwbackFunction?: (value: T) => void): Try<T>`
-Will throw default or run custom code if predicate is false.
+### `filterNot(predicateFunc: (value: T) => boolean, throwbackFunction?: (value: T) => Error): Try<T>`
+Will throw default or custom Error if predicate is false.
 ```typescript
 //Failure
 const value = await Try.success(10)
