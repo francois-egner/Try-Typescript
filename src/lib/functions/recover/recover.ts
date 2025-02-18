@@ -1,16 +1,15 @@
 import {Result} from "../../Result";
+import {runInTry} from "../helpers";
 
 
 export async function recover(prev: Result, func: (err: Error) => any): Promise<Result>{
     if(!prev.isError())
-        return prev
+        return prev;
 
-    try{
-        prev.setValue(await func(prev.getError()!))
+    await runInTry(async ()=>{
+        prev.setValue(await func(prev.getError()!));
         prev.setError(undefined);
-    }catch(err: unknown){
-        prev.setError(err as Error);
-    }
+    }, prev);
 
     return prev;
 

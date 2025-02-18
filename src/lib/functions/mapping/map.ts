@@ -1,15 +1,14 @@
 import {Result} from "../../Result";
+import {runInTry} from "../helpers";
 
 
 export async function map(prev: Result, func: (v: any)=> any): Promise<Result>{
     if(prev.isError())
-        return prev
+        return prev;
 
-    try{
-        prev.setValue(await func(prev.getValue()))
-    }catch(err: unknown){
-        prev.setError(err as Error);
-    }
+    await runInTry(async () => {
+        prev.setValue(await func(prev.getValue()));
+    }, prev);
 
     return prev;
 

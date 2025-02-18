@@ -10,3 +10,14 @@ export async function runSteps(steps: Step[]): Promise<Result> {
     }
     return result;
 }
+
+export async function runInTry(func: ()=> Promise<Result | void>, prev: Result, ignoreException = false){
+    try{
+        await func();
+        return true;
+    }catch(err: unknown){
+        if(!ignoreException)
+            prev.setError(err);
+        return false;
+    }
+}
