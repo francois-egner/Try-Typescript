@@ -6,6 +6,7 @@ export async function getOrElseGet(tryObject: Try<unknown>, func: (err: Error) =
     tryObject._finalResult = finalResult;
 
     if(finalResult.isError())
-        return await func(finalResult.getError()!)
+        return await func(finalResult.getError()!);
+
     return finalResult.getValue();
 }

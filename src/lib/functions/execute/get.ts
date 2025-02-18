@@ -1,4 +1,4 @@
-import {Step, Try} from "../../Try";
+import {Try} from "../../Try";
 import {runSteps} from "../helpers";
 
 export async function get(tryObject: Try<unknown>){
@@ -6,5 +6,6 @@ export async function get(tryObject: Try<unknown>){
     tryObject._finalResult = finalResult;
     if(finalResult.isError())
         throw finalResult.getError();
+
     return finalResult.getValue();
 }

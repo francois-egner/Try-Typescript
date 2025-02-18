@@ -1,4 +1,4 @@
-import {Step, Try} from "../../Try";
+import {Try} from "../../Try";
 import {runSteps} from "../helpers";
 
 export async function getOrElse(tryObject: Try<unknown>, fallbackValue: any){
@@ -7,5 +7,6 @@ export async function getOrElse(tryObject: Try<unknown>, fallbackValue: any){
 
     if(finalResult.isError())
         return fallbackValue;
+
     return finalResult.getValue();
 }

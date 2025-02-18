@@ -1,7 +1,11 @@
+## [1.1.2-1.1.3] - 2025-02-18
+### Fixed
+- Some refactoring for better code readability
+
 ## [1.1.1] - 2025-02-15
 ### Fixed
 - Several function type signature
-- Rewritten the whole library for better readibility
+- Rewritten the whole library for better readability
 
 ## [1.1.0] - 2025-02-15
 ### Added

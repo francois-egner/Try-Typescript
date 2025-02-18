@@ -1,10 +1,12 @@
 import {Result} from "../../Result";
+import {runInTry} from "../helpers";
 
 
 export async function of(func: () => any): Promise<Result> {
-    try{
-        return new Result().setValue(await func());
-    }catch(err: unknown){
-        return new Result().setError(err as Error);
-    }
+    const result = new Result();
+    await runInTry(async ()=>{
+        result.setValue(await func());
+    }, result);
+
+    return result;
 }
