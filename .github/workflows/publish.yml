@@ -7,7 +7,7 @@ on:
       - completed
 
 jobs:
-  publish:
+  publish_jsr:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}  # Ensure the test run was successful
     runs-on: ubuntu-latest
     permissions:
@@ -16,3 +16,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: npx jsr publish
+
+  publish_npm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build the project
+        run: npm run build
+
+      - name: Publish to NPM
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}  # Use your npm token stored in GitHub secrets
+        run: npm publish --access public
