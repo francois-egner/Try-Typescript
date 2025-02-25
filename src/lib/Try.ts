@@ -37,6 +37,8 @@ export class Try<T> {
      * This is `undefined` if the computation has not yet been completed or finalized.
      *
      * @type {Result | undefined}
+     * @internal
+     * @hidden
      */
     public _finalResult?: Result = undefined;
 
@@ -45,8 +47,10 @@ export class Try<T> {
      * Each step represents an individual transformation or check.
      *
      * @type {Step[]}
+     * @internal
+     * @hidden
      */
-    public readonly steps: Step[] = [];
+    public readonly _steps: Step[] = [];
 
     /**
      * Private constructor that initializes the computation with a list of steps.
@@ -55,7 +59,7 @@ export class Try<T> {
      * @param {Step[]} [steps=[]] The list of steps performed during the computation.
      */
     private constructor(steps: Step[] = []) {
-        this.steps = steps;
+        this._steps = steps;
     }
 
 
@@ -131,7 +135,7 @@ export class Try<T> {
      * @returns {Try<U>} A new `Try` instance containing either the transformed value or the original failure.
      */
     public map<U>(func: (value: T) => U | Promise<U>): Try<U> {
-        return new Try([...this.steps, (prev: Result)=> map(prev, func)])
+        return new Try([...this._steps, (prev: Result)=> map(prev, func)])
     }
 
 
@@ -148,7 +152,7 @@ export class Try<T> {
      * @returns {Try<U>} A new `Try` instance containing either the transformed value, the original value, or the failure.
      */
     public mapIf<U>(predicateFunc: (value: T) => boolean | Promise<boolean>, func: (value: T) => U | Promise<U>): Try<U>{
-        return new Try([...this.steps, (prev: Result)=> mapIf(prev, predicateFunc, func)])
+        return new Try([...this._steps, (prev: Result)=> mapIf(prev, predicateFunc, func)])
     }
 
 
@@ -166,7 +170,7 @@ export class Try<T> {
      * @returns {Try<T>} A new `Try` instance with either the transformed failure, the original failure, or the success.
      */
     public mapFailureWith<E extends Error, U extends Error>(errorType: new (...args: any[]) => E, func: (ex: E) => U | Promise<U>): Try<T>{
-        return new Try([...this.steps, (prev: Result)=> mapFailureWith(prev, errorType, func)])
+        return new Try([...this._steps, (prev: Result)=> mapFailureWith(prev, errorType, func)])
     }
 
 
@@ -184,7 +188,7 @@ export class Try<T> {
      * @returns {Try<U>} A new `Try` instance containing the transformed value or the original failure.
      */
     public flatMap<U>(func: (value: T) => Try<U> | Promise<Try<U>>): Try<U> {
-        return new Try([...this.steps, (prev: Result)=> flatMap(prev, func)])
+        return new Try([...this._steps, (prev: Result)=> flatMap(prev, func)])
     }
 
 
@@ -205,7 +209,7 @@ export class Try<T> {
      * @returns {Try<U>} A new `Try` instance containing the transformed value, the original value, or the failure.
      */
     public flatMapIf<U>(predicateFunc: (value: T) => boolean | Promise<boolean>, func: (value: T) => Try<U> | Promise<Try<U>>): Try<U>{
-        return new Try([...this.steps, (prev: Result)=> flatMapIf(prev, predicateFunc, func)])
+        return new Try([...this._steps, (prev: Result)=> flatMapIf(prev, predicateFunc, func)])
     }
 
 
@@ -268,7 +272,7 @@ export class Try<T> {
      */
     public peek(func: (value: T) => Promise<void> | void): Try<T>{
         //According to the docs, peek is the same as `andThen`
-        return new Try([...this.steps, (prev: Result)=> andThen(prev, func)])
+        return new Try([...this._steps, (prev: Result)=> andThen(prev, func)])
     }
 
 
@@ -283,7 +287,7 @@ export class Try<T> {
      * @returns {Try<T>} The original `Try` instance, allowing for further chaining.
      */
     public andThen(func: (value: T) => Promise<void> | void): Try<T>{
-        return new Try([...this.steps, (prev: Result)=> andThen(prev, func)])
+        return new Try([...this._steps, (prev: Result)=> andThen(prev, func)])
     }
 
 
@@ -300,7 +304,7 @@ export class Try<T> {
      * @returns {Try<T>} A new `Try` instance that either contains the value, or a `Failure` with the generated error.
      */
     public filter(predicateFunc: (value: T) => boolean | Promise<boolean>, errorProvider?: (value: T) => Error): Try<T>{
-        return new Try([...this.steps, (prev: Result)=> filter(prev, predicateFunc, errorProvider)])
+        return new Try([...this._steps, (prev: Result)=> filter(prev, predicateFunc, errorProvider)])
     }
 
 
@@ -317,7 +321,7 @@ export class Try<T> {
      * @returns {Try<T>} A new `Try` instance that either contains the value, or a `Failure` with the generated error.
      */
     public filterNot(predicateFunc: (value: T) => boolean | Promise<boolean>, errorProvider?: (value: T) => Error): Try<T>{
-        return new Try([...this.steps, (prev: Result)=> filterNot(prev, predicateFunc, errorProvider)])
+        return new Try([...this._steps, (prev: Result)=> filterNot(prev, predicateFunc, errorProvider)])
     }
 
 
@@ -333,7 +337,7 @@ export class Try<T> {
      * @returns {Try<T | U>} A new `Try` instance containing the original value if the `Try` was a success, or the recovered value if it was a failure.
      */
     public recover<U>(func: (error: Error) => U | Promise<U>): Try<T | U>{
-        return new Try([...this.steps, (prev: Result)=> recover(prev, func)])
+        return new Try([...this._steps, (prev: Result)=> recover(prev, func)])
     }
 
 
@@ -349,7 +353,7 @@ export class Try<T> {
      * @returns {Try<U | T>} A new `Try` instance containing the original value if the `Try` was a success, or the recovered value if it was a failure.
      */
     public recoverWith<U>(func: (error: Error) => Try<U> | Promise<Try<U>>): Try<U | T>{
-        return new Try([...this.steps, (prev: Result)=> recoverWith(prev, func)])
+        return new Try([...this._steps, (prev: Result)=> recoverWith(prev, func)])
     }
 
 
@@ -420,7 +424,7 @@ export class Try<T> {
      * @returns {Try<T>} The original `Try` instance, allowing for further chaining.
      */
     public andFinally(func: () => Promise<void> | void): Try<T> {
-        return new Try([...this.steps, (prev: Result)=> andFinally(prev, func)])
+        return new Try([...this._steps, (prev: Result)=> andFinally(prev, func)])
     }
 
 
@@ -435,7 +439,7 @@ export class Try<T> {
      * @returns {Try<T>} A new `Try` instance that contains either the original value (if successful) or the transformed error (if failure).
      */
     public mapFailure(func: (ex: Error) => Error | Promise<Error>): Try<T>{
-        return new Try([...this.steps, (prev: Result)=> mapFailure(prev, func)])
+        return new Try([...this._steps, (prev: Result)=> mapFailure(prev, func)])
     }
 
 
@@ -464,7 +468,7 @@ export class Try<T> {
      * @returns {Try<T>} The original `Try` instance, allowing for further chaining.
      */
     public onSuccess(func: (value: T) => Promise<void> | void): Try<T>{
-        return new Try([...this.steps, (prev: Result)=> onSuccess(prev, func)])
+        return new Try([...this._steps, (prev: Result)=> onSuccess(prev, func)])
     }
 
 
@@ -479,7 +483,7 @@ export class Try<T> {
      * @returns {Try<T>} The original `Try` instance, allowing for further chaining.
      */
     public onFailure(func: (value: Error) => Promise<void> | void): Try<T>{
-        return new Try([...this.steps, (prev: Result)=> onFailure(prev, func)])
+        return new Try([...this._steps, (prev: Result)=> onFailure(prev, func)])
     }
 
 }

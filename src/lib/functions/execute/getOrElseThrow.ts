@@ -3,7 +3,7 @@ import {Result} from "../../Result";
 import {runSteps} from "../helpers";
 
 export async function getOrElseThrow(tryObject: Try<unknown>, func: (err: Error) => Promise<Error> | Error){
-    const finalResult = await runSteps(tryObject.steps);
+    const finalResult = await runSteps(tryObject._steps);
     tryObject._finalResult = finalResult;
 
     if(finalResult.isError())
