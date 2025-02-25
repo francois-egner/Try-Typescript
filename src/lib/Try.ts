@@ -9,7 +9,17 @@ import {
 } from "./functions";
 import {Result} from "./Result";
 
-
+/**
+ * Represents a step in the computation of a `Try` instance.
+ *
+ * A `Step` is a function that can either:
+ * - Be an initial asynchronous function that returns a `Promise<Result>`, or
+ * - Accept a previous `Result` and return a new `Promise<Result>`, allowing for chaining of computations.
+ *
+ * The `Step` type is used to track the operations performed during the `Try` computation and the transformations that happen to the result.
+ *
+ * @typedef {Step}
+ */
 export type Step = ((() => Promise<Result>) | ((prev: Result) => Promise<Result>));
 
 
