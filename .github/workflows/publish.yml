@@ -1,0 +1,18 @@
+name: Publish
+
+on:
+  workflow_run:
+    workflows: ["Test"]  # Name of the test workflow
+    types:
+      - completed
+
+jobs:
+  publish:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}  # Ensure the test run was successful
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: npx jsr publish
