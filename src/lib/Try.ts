@@ -12,9 +12,38 @@ import {Result} from "./Result";
 
 export type Step = ((() => Promise<Result>) | ((prev: Result) => Promise<Result>));
 
+
+/**
+ * Represents a computation that may result in either a success or failure, capturing both outcomes.
+ *
+ * The `Try` class encapsulates a computation that can either be a successful result or an error (failure).
+ * It provides methods to handle success and failure in a functional way, without throwing exceptions.
+ *
+ * @template T The type of the result if the computation is successful.
+ */
 export class Try<T> {
+    /**
+     * The final result of the computation, which may be a success or failure.
+     * This is `undefined` if the computation has not yet been completed or finalized.
+     *
+     * @type {Result | undefined}
+     */
     public _finalResult?: Result = undefined;
+
+    /**
+     * A list of steps representing the various operations performed during the computation.
+     * Each step represents an individual transformation or check.
+     *
+     * @type {Step[]}
+     */
     public readonly steps: Step[] = [];
+
+    /**
+     * Private constructor that initializes the computation with a list of steps.
+     * This constructor is used internally to create a `Try` instance.
+     *
+     * @param {Step[]} [steps=[]] The list of steps performed during the computation.
+     */
     private constructor(steps: Step[] = []) {
         this.steps = steps;
     }
