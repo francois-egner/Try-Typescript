@@ -302,11 +302,11 @@ export class Try<T> {
 
 
     /**
-     * Filters the value inside the `Try` if it is a `Success`, returning a `Failure` if the predicate does not match.
+     * Filters the value inside the `Try` if it is a `Success`, returning a `Failure` if the predicate does match.
      *
-     * If this `Try` is a `Success` and the `predicateFunc` returns `true`, the value is returned unchanged.
-     * If the `predicateFunc` returns `false`, the `errorProvider` function (if provided) is called to generate an error,
-     * and the result is a `Failure` with that error.
+     * If this `Try` is a `Success` and the `predicateFunc` returns `false`, the value is returned unchanged.
+     * If the `predicateFunc` returns `true`, the `errorProvider` function (if provided) is called to generate an error,
+     * and the result is a `Failure` with that error. If `errorProvider` is not provided, `NoSuchElementException` will be thrown.
      * If this `Try` is a `Failure`, the failure is propagated unchanged.
      *
      * @param {(value: T) => boolean | Promise<boolean>} predicateFunc A function that determines whether the value should be kept.
@@ -319,11 +319,11 @@ export class Try<T> {
 
 
     /**
-     * Filters the value inside the `Try` if it is a `Success`, returning a `Failure` if the predicate matches.
+     * Filters the value inside the `Try` if it is a `Success`, returning a `Failure` if the predicate does not match.
      *
-     * If this `Try` is a `Success` and the `predicateFunc` returns `false`, the value is returned unchanged.
-     * If the `predicateFunc` returns `true`, the `errorProvider` function (if provided) is called to generate an error,
-     * and the result is a `Failure` with that error.
+     * If this `Try` is a `Success` and the `predicateFunc` returns `true`, the value is returned unchanged.
+     * If the `predicateFunc` returns `false`, the `errorProvider` function (if provided) is called to generate an error,
+     * and the result is a `Failure` with that error. If `errorProvider` is not provided, `NoSuchElementException` will be thrown.
      * If this `Try` is a `Failure`, the failure is propagated unchanged.
      *
      * @param {(value: T) => boolean | Promise<boolean>} predicateFunc A function that determines whether the value should be excluded.
