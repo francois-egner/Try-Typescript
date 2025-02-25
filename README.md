@@ -1,6 +1,8 @@
 # Try-Typescript
 
-You can find this library on NPM: [Try-Typescript](https://www.npmjs.com/package/try-typescript)
+You can find this library on: 
+- NPM: [Try-Typescript](https://www.npmjs.com/package/try-typescript)
+- JSR: [Try-Typescript](https://jsr.io/@francois-egner/try-typescript)
 
 ## Overview
 
