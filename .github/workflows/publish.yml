@@ -37,5 +37,10 @@ jobs:
       - name: Authenticate with npm
         run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
 
+      - name: Check if version exists on NPM
+        run: |
+          npm show try-typescript@${{ steps.version.outputs.version }} > /dev/null 2>&1 || echo "Version does not exist, ready to publish."
+
       - name: Publish to NPM
         run: npm publish --access public
+        if: ${{ steps.version.outputs.version != '' }}
