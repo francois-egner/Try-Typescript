@@ -1,4 +1,2 @@
-import {Try} from "./lib";
-
-export {Try};
+export {Try, NoSuchElementException} from "./lib";
 
