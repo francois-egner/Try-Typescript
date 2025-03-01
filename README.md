@@ -1,3 +1,6 @@
+> [!CAUTION]
+> This library is deprecated as it is now part of the new [func-typescript](https://github.com/francois-egner/func-typescript) library. New features will only be published in the new library.
+
 # Try-Typescript
 
 You can find this library on: 
